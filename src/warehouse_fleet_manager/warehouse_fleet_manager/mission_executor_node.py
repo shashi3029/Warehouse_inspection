@@ -235,6 +235,11 @@ class MissionExecutorNode(Node):
                 error_message="" if success else "Task execution failed",
             )
 
+    def _wait_for_future(self, future, timeout_sec: float) -> bool:
+        done_event = threading.Event()
+        future.add_done_callback(lambda _: done_event.set())
+        return done_event.wait(timeout=timeout_sec)
+
     def _exec_navigate(
         self, task_id: str, goal: str, params: Dict[str, Any]
     ) -> bool:
@@ -258,9 +263,7 @@ class MissionExecutorNode(Node):
         goal_msg.pose = self._make_pose_stamped(x, y, theta)
 
         send_future = self._nav_client.send_goal_async(goal_msg)
-        rclpy.spin_until_future_complete(self, send_future, timeout_sec=10.0)
-
-        if not send_future.done():
+        if not self._wait_for_future(send_future, timeout_sec=10.0):
             self.get_logger().error(f"[{self._robot_id}] Goal send timeout for {goal}")
             return False
 

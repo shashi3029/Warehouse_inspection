@@ -187,35 +187,35 @@
     <model name="crate_4"><static>true</static><pose>22 6 0.65 0 0 0</pose><link name="l"><collision name="c"><geometry><box><size>1.0 0.7 1.0</size></box></geometry></collision><visual name="v"><geometry><box><size>1.0 0.7 1.0</size></box></geometry><material><ambient>0.30 0.38 0.50 1</ambient><diffuse>0.32 0.42 0.55 1</diffuse></material></visual></link></model>
 
     <!-- ============================================================== -->
-    <!--  Charging stations — green pads + panel on west wall           -->
+    <!--  Charging stations — green pads at (-15,-15) and (15,-15)     -->
     <!-- ============================================================== -->
     <model name="charging_pad_1">
-      <static>true</static><pose>-25 -12 0.05 0 0 0</pose>
+      <static>true</static><pose>-15 -15 0.05 0 0 0</pose>
       <link name="l">
         <collision name="c"><geometry><box><size>1.0 0.8 0.1</size></box></geometry></collision>
         <visual name="v"><geometry><box><size>1.0 0.8 0.1</size></box></geometry><material><ambient>0.05 0.55 0.05 1</ambient><diffuse>0.08 0.65 0.08 1</diffuse></material></visual>
       </link>
     </model>
     <model name="charging_panel_1">
-      <static>true</static><pose>-27.5 -12 0.9 0 0 0</pose>
+      <static>true</static><pose>-15 -16.5 0.9 0 0 0</pose>
       <link name="l">
-        <collision name="c"><geometry><box><size>0.1 0.5 1.4</size></box></geometry></collision>
-        <visual name="v"><geometry><box><size>0.1 0.5 1.4</size></box></geometry><material><ambient>0.15 0.15 0.15 1</ambient><diffuse>0.20 0.20 0.20 1</diffuse></material></visual>
+        <collision name="c"><geometry><box><size>0.5 0.1 1.4</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>0.5 0.1 1.4</size></box></geometry><material><ambient>0.15 0.15 0.15 1</ambient><diffuse>0.20 0.20 0.20 1</diffuse></material></visual>
       </link>
     </model>
 
     <model name="charging_pad_2">
-      <static>true</static><pose>-25 12 0.05 0 0 0</pose>
+      <static>true</static><pose>15 -15 0.05 0 0 0</pose>
       <link name="l">
         <collision name="c"><geometry><box><size>1.0 0.8 0.1</size></box></geometry></collision>
         <visual name="v"><geometry><box><size>1.0 0.8 0.1</size></box></geometry><material><ambient>0.05 0.55 0.05 1</ambient><diffuse>0.08 0.65 0.08 1</diffuse></material></visual>
       </link>
     </model>
     <model name="charging_panel_2">
-      <static>true</static><pose>-27.5 12 0.9 0 0 0</pose>
+      <static>true</static><pose>15 -16.5 0.9 0 0 0</pose>
       <link name="l">
-        <collision name="c"><geometry><box><size>0.1 0.5 1.4</size></box></geometry></collision>
-        <visual name="v"><geometry><box><size>0.1 0.5 1.4</size></box></geometry><material><ambient>0.15 0.15 0.15 1</ambient><diffuse>0.20 0.20 0.20 1</diffuse></material></visual>
+        <collision name="c"><geometry><box><size>0.5 0.1 1.4</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>0.5 0.1 1.4</size></box></geometry><material><ambient>0.15 0.15 0.15 1</ambient><diffuse>0.20 0.20 0.20 1</diffuse></material></visual>
       </link>
     </model>
 
