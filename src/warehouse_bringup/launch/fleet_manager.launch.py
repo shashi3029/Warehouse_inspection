@@ -23,7 +23,6 @@ _PKG_BU   = "warehouse_bringup"
 
 def generate_launch_description():
     pkg_bringup = get_package_share_directory(_PKG_BU)
-    cfg = os.path.join(pkg_bringup, "config", "warehouse_config.yaml")
 
     use_sim_time = LaunchConfiguration("use_sim_time", default="true")
 
@@ -35,7 +34,7 @@ def generate_launch_description():
         executable="mission_planner",
         name="mission_planner",
         namespace="warehouse",
-        parameters=[cfg, {"use_sim_time": use_sim_time}],
+        parameters=[{"use_sim_time": use_sim_time}],
         output="screen",
         emulate_tty=True,
     )
@@ -45,7 +44,7 @@ def generate_launch_description():
         executable="mission_validator",
         name="mission_validator",
         namespace="warehouse",
-        parameters=[cfg, {"use_sim_time": use_sim_time}],
+        parameters=[{"use_sim_time": use_sim_time}],
         output="screen",
         emulate_tty=True,
     )
@@ -55,7 +54,7 @@ def generate_launch_description():
         executable="mission_coordinator",
         name="mission_coordinator",
         namespace="warehouse",
-        parameters=[cfg, {"use_sim_time": use_sim_time}],
+        parameters=[{"use_sim_time": use_sim_time}],
         output="screen",
         emulate_tty=True,
     )
@@ -65,7 +64,7 @@ def generate_launch_description():
         executable="fleet_dashboard",
         name="fleet_dashboard",
         namespace="warehouse",
-        parameters=[cfg, {"use_sim_time": use_sim_time}],
+        parameters=[{"use_sim_time": use_sim_time}],
         output="screen",
         emulate_tty=True,
     )
@@ -75,7 +74,7 @@ def generate_launch_description():
         executable="charging_manager",
         name="charging_manager",
         namespace="warehouse",
-        parameters=[cfg, {"use_sim_time": use_sim_time}],
+        parameters=[{"use_sim_time": use_sim_time}],
         output="screen",
         emulate_tty=True,
     )
@@ -86,7 +85,7 @@ def generate_launch_description():
         executable="formation_controller",
         name="formation_controller",
         namespace="warehouse",
-        parameters=[cfg, {"use_sim_time": use_sim_time}],
+        parameters=[{"use_sim_time": use_sim_time}],
         output="screen",
     )
 
@@ -100,7 +99,7 @@ def generate_launch_description():
             executable="battery_manager",
             name=f"battery_manager_{ns}",
             namespace="warehouse",
-            parameters=[cfg, {
+            parameters=[{
                 "use_sim_time": use_sim_time,
                 "robot_id": robot_id,
             }],
@@ -114,7 +113,7 @@ def generate_launch_description():
             executable="mission_executor",
             name=f"mission_executor_{ns}",
             namespace="warehouse",
-            parameters=[cfg, {
+            parameters=[{
                 "use_sim_time": use_sim_time,
                 "robot_id": robot_id,
             }],
@@ -128,7 +127,7 @@ def generate_launch_description():
             executable="vision_detector",
             name=f"vision_detector_{ns}",
             namespace="warehouse",
-            parameters=[cfg, {
+            parameters=[{
                 "use_sim_time": use_sim_time,
                 "robot_id": robot_id,
             }],
@@ -142,7 +141,7 @@ def generate_launch_description():
             executable="target_follower",
             name=f"target_follower_{ns}",
             namespace="warehouse",
-            parameters=[cfg, {
+            parameters=[{
                 "use_sim_time": use_sim_time,
                 "robot_id": robot_id,
             }],
@@ -155,7 +154,7 @@ def generate_launch_description():
             package=_PKG_NAV,
             executable="navigation_controller",
             name=f"navigation_controller_{ns}",
-            parameters=[cfg, {
+            parameters=[{
                 "use_sim_time": use_sim_time,
             }],
             arguments=[robot_id],
