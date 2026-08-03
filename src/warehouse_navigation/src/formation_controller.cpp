@@ -221,7 +221,7 @@ geometry_msgs::msg::Pose2D FormationController::rotate_offset(
 }
 
 geometry_msgs::msg::PoseStamped FormationController::pose2d_to_stamped(
-    const geometry_msgs::msg::Pose2D& p) const
+    const geometry_msgs::msg::Pose2D& p)
 {
     geometry_msgs::msg::PoseStamped ps;
     ps.header.stamp    = get_clock()->now();

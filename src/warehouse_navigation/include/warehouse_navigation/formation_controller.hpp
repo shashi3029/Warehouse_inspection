@@ -91,7 +91,7 @@ private:
 
     geometry_msgs::msg::PoseStamped pose2d_to_stamped(
         const geometry_msgs::msg::Pose2D& p
-    ) const;
+    );
 
     static FormationType formation_from_string(const std::string& name) noexcept;
 };

@@ -61,7 +61,7 @@ bool NavigationController::send_goal(
         if (current_goal_handle_ &&
             navigation_state_.load() == NavigationState::NAVIGATING)
         {
-            current_goal_handle_->async_cancel_goal();
+            nav_action_client_->async_cancel_goal(current_goal_handle_);
         }
     }
 
@@ -108,7 +108,7 @@ bool NavigationController::cancel_current_goal() {
     if (!current_goal_handle_) {
         return true;
     }
-    current_goal_handle_->async_cancel_goal();
+    nav_action_client_->async_cancel_goal(current_goal_handle_);
     navigation_state_.store(NavigationState::GOAL_CANCELLED);
     disarm_timeout();
     RCLCPP_INFO(get_logger(), "[%s] Goal cancelled", robot_id_.c_str());
