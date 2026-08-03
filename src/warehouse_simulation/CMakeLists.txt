@@ -3,7 +3,7 @@ project(warehouse_simulation)
 
 find_package(ament_cmake REQUIRED)
 
-install(DIRECTORY worlds models launch
+install(DIRECTORY worlds launch
   DESTINATION share/${PROJECT_NAME}
 )
 
