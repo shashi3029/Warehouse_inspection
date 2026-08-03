@@ -13,6 +13,7 @@ int32 failed_tasks
 int32 pending_tasks
 int32 mission_loop_count
 bool is_looping
+string[] active_robot_ids
 float64 estimated_remaining_seconds
 string[] active_warnings
 builtin_interfaces/Time timestamp

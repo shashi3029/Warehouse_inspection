@@ -583,6 +583,13 @@ class MissionCoordinatorNode(Node):
         msg.failed_tasks = len(self._failed_tasks)
         msg.pending_tasks = len(self._pending_tasks)
         msg.mission_loop_count = self._mission_loop_count
+        msg.active_robot_ids = list(self._active_assignments.keys())
+        msg.mission_state = (
+            "EXECUTING" if self._active_assignments
+            else "WAITING" if self._pending_tasks
+            else "COMPLETED" if self._current_mission
+            else "IDLE"
+        )
 
         total_tasks = msg.completed_tasks + msg.failed_tasks + msg.pending_tasks
         total_tasks += len(self._active_assignments)

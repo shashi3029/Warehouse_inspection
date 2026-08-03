@@ -183,7 +183,7 @@ class FleetDashboardNode(Node):
                 f"║  MISSION: {fs.mission_name[:38]:<38}      ║",
                 f"║  Type: {fs.mission_type:<15}  Loop: {'YES' if fs.is_looping else 'NO ':3}  Loops: {fs.mission_loop_count:<5}  ║",
                 f"║  Progress: [{bar}] {progress_pct:5.1f}%  ║",
-                f"║  Tasks:  Done={fs.completed_tasks:<4} Failed={fs.failed_tasks:<4} Pending={fs.pending_tasks:<4}  Active={len(fs.active_robot_ids) if hasattr(fs,'active_robot_ids') else 0:<3}   ║",
+                f"║  Tasks:  Done={fs.completed_tasks:<4} Failed={fs.failed_tasks:<4} Pending={fs.pending_tasks:<4}  Active={len(fs.active_robot_ids):<3}   ║",
                 "╠══════════════════════════════════════════════════════════════════════╣",
                 "║  ROBOT STATUS                                                        ║",
                 "║  Robot     State        Task        Battery      Position    Charg   ║",
