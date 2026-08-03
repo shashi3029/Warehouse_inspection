@@ -1,0 +1,15 @@
+string task_id
+string robot_id
+string task_type
+string task_state
+string goal
+float64 progress
+bool completed
+bool failed
+bool paused
+string error_message
+string[] waypoints_remaining
+int32 retry_count
+builtin_interfaces/Time start_time
+builtin_interfaces/Time update_time
+float64 estimated_completion_seconds

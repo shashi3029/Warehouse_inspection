@@ -1,0 +1,117 @@
+{
+  "mission_id": "default_startup_mission_001",
+  "mission_name": "Warehouse Startup Patrol and Inspection",
+  "mission_type": "COMPREHENSIVE_INSPECTION",
+  "timestamp": "2024-01-01T00:00:00Z",
+  "priority": 5,
+  "loop": true,
+  "battery_threshold": 20,
+  "resume_after_charge": true,
+  "description": "Default startup mission: all four robots perform coordinated patrol and shelf inspection across all warehouse zones continuously.",
+  "commands": [
+    {
+      "task_id": "cmd_001",
+      "task_type": "PATROL",
+      "robot_id": "Robot_1",
+      "goal": "Shelf_A",
+      "priority": 5,
+      "parameters": {
+        "waypoints": ["Waypoint_1", "Shelf_A", "Waypoint_5", "Shelf_A"],
+        "loop": true,
+        "speed": 0.3,
+        "zone": "Zone_A"
+      }
+    },
+    {
+      "task_id": "cmd_002",
+      "task_type": "PATROL",
+      "robot_id": "Robot_2",
+      "goal": "Shelf_B",
+      "priority": 5,
+      "parameters": {
+        "waypoints": ["Waypoint_2", "Shelf_B", "Waypoint_6", "Shelf_B"],
+        "loop": true,
+        "speed": 0.3,
+        "zone": "Zone_B"
+      }
+    },
+    {
+      "task_id": "cmd_003",
+      "task_type": "PATROL",
+      "robot_id": "Robot_3",
+      "goal": "Shelf_C",
+      "priority": 5,
+      "parameters": {
+        "waypoints": ["Waypoint_3", "Shelf_C", "Waypoint_7", "Shelf_C"],
+        "loop": true,
+        "speed": 0.3,
+        "zone": "Zone_C"
+      }
+    },
+    {
+      "task_id": "cmd_004",
+      "task_type": "PATROL",
+      "robot_id": "Robot_4",
+      "goal": "Shelf_D",
+      "priority": 5,
+      "parameters": {
+        "waypoints": ["Waypoint_4", "Shelf_D", "Waypoint_8", "Shelf_D"],
+        "loop": true,
+        "speed": 0.3,
+        "zone": "Zone_D"
+      }
+    },
+    {
+      "task_id": "cmd_005",
+      "task_type": "INSPECT",
+      "robot_id": "Robot_1",
+      "goal": "Shelf_A",
+      "priority": 6,
+      "parameters": {
+        "shelves": ["Shelf_A"],
+        "scan_duration_seconds": 10,
+        "rotation_steps": 8,
+        "speed": 0.2
+      }
+    },
+    {
+      "task_id": "cmd_006",
+      "task_type": "INSPECT",
+      "robot_id": "Robot_2",
+      "goal": "Shelf_B",
+      "priority": 6,
+      "parameters": {
+        "shelves": ["Shelf_B"],
+        "scan_duration_seconds": 10,
+        "rotation_steps": 8,
+        "speed": 0.2
+      }
+    },
+    {
+      "task_id": "cmd_007",
+      "task_type": "INSPECT",
+      "robot_id": "Robot_3",
+      "goal": "Shelf_C",
+      "priority": 6,
+      "parameters": {
+        "shelves": ["Shelf_C"],
+        "scan_duration_seconds": 10,
+        "rotation_steps": 8,
+        "speed": 0.2
+      }
+    },
+    {
+      "task_id": "cmd_008",
+      "task_type": "INSPECT",
+      "robot_id": "Robot_4",
+      "goal": "Shelf_D",
+      "priority": 6,
+      "parameters": {
+        "shelves": ["Shelf_D"],
+        "scan_duration_seconds": 10,
+        "rotation_steps": 8,
+        "speed": 0.2
+      }
+    }
+  ]
+}

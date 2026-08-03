@@ -1,0 +1,9 @@
+string[] robot_ids
+string reason
+bool stop_all
+---
+bool success
+string message
+int32 robots_stopped
+string[] stopped_robot_ids
+string[] failed_robot_ids

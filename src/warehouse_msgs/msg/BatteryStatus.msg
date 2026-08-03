@@ -1,0 +1,13 @@
+string robot_id
+float64 percentage
+float64 voltage
+float64 current_draw
+float64 temperature
+bool is_charging
+bool is_healthy
+bool is_critical
+float64 estimated_remaining_minutes
+float64 charge_rate
+float64 drain_rate
+string charging_station_id
+builtin_interfaces/Time timestamp

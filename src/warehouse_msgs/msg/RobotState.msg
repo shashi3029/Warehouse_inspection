@@ -1,0 +1,16 @@
+string robot_id
+string state
+string previous_state
+string current_task
+string task_id
+string goal
+string zone
+geometry_msgs/Pose2D position
+float64 speed
+float64 battery_percentage
+bool is_charging
+bool is_available
+bool is_emergency_stopped
+string mission_id
+string error_message
+builtin_interfaces/Time timestamp

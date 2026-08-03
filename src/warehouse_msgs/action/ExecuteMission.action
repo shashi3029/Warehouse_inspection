@@ -1,0 +1,18 @@
+string mission_json
+bool override_current
+---
+bool success
+int32 completed_tasks
+int32 failed_tasks
+int32 total_tasks
+int32 loops_completed
+string summary
+string[] robot_reports
+---
+string current_robot
+string current_task
+string current_goal
+float64 progress
+int32 tasks_completed
+int32 tasks_remaining
+string status_message

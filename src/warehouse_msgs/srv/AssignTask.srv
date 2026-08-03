@@ -1,0 +1,13 @@
+string robot_id
+string task_type
+string task_id
+string goal
+int32 priority
+string parameters_json
+bool force_assign
+---
+bool success
+string task_id
+string assigned_robot_id
+string message
+float64 estimated_completion_seconds

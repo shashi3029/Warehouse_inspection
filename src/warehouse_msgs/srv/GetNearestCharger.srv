@@ -1,0 +1,11 @@
+string robot_id
+geometry_msgs/Pose2D robot_position
+bool require_available
+---
+bool success
+string station_id
+geometry_msgs/Pose2D station_position
+float64 distance
+bool is_available
+int32 queue_length
+string message

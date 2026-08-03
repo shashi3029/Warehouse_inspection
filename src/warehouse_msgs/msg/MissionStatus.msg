@@ -1,0 +1,17 @@
+string mission_id
+string mission_name
+string mission_type
+string state
+float64 progress
+string current_phase
+bool is_looping
+int32 loop_count
+int32 total_commands
+int32 completed_commands
+int32 failed_commands
+int32 pending_commands
+string[] active_robot_ids
+builtin_interfaces/Time start_time
+builtin_interfaces/Time last_update_time
+float64 elapsed_seconds
+string error_message

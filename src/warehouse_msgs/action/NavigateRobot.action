@@ -1,0 +1,15 @@
+string robot_id
+geometry_msgs/PoseStamped goal_pose
+string goal_id
+bool is_charging_goal
+float64 timeout_seconds
+---
+bool success
+string message
+float64 time_taken_seconds
+float64 distance_travelled
+---
+float64 distance_remaining
+float64 progress
+string navigation_state
+geometry_msgs/Pose2D current_pose

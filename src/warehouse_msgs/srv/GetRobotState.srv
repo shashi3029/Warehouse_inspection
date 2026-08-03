@@ -1,0 +1,5 @@
+string robot_id
+---
+bool success
+warehouse_msgs/RobotState state
+string message

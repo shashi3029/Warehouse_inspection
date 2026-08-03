@@ -1,0 +1,14 @@
+string robot_id
+string station_id
+bool is_charging
+bool is_queued
+int32 queue_position
+float64 charge_percentage
+float64 charge_start_percentage
+float64 time_to_full_minutes
+float64 current_charge_rate
+bool station_available
+int32 station_capacity
+int32 station_current_occupancy
+geometry_msgs/Pose2D station_position
+builtin_interfaces/Time charging_start_time

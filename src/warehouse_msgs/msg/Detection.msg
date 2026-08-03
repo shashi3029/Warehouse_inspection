@@ -1,0 +1,14 @@
+string detection_id
+string robot_id
+string detection_type
+string object_id
+string object_class
+geometry_msgs/Pose pose
+float64 confidence
+float64 distance
+string zone
+string[] attributes
+bool is_obstacle
+bool is_target
+bool is_human
+builtin_interfaces/Time timestamp

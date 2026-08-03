@@ -1,0 +1,129 @@
+---
+# Warehouse Fleet Management System — Global Configuration
+# Modify this file to adapt the system to your physical warehouse layout.
+
+warehouse:
+  name: "Industrial Warehouse"
+  dimensions:
+    x_min: -20.0
+    x_max:  20.0
+    y_min: -20.0
+    y_max:  20.0
+  frame_id: "map"
+  coordinate_system: "ENU"
+
+robots:
+  - id: "Robot_1"
+    namespace: "robot1"
+    home_position: {x: -8.0, y: -8.0, theta: 0.0}
+    model: "turtlebot3_burger"
+    max_speed: 0.5
+    max_angular_speed: 2.84
+    battery_capacity_wh: 100.0
+  - id: "Robot_2"
+    namespace: "robot2"
+    home_position: {x: -8.0, y:  8.0, theta: 0.0}
+    model: "turtlebot3_burger"
+    max_speed: 0.5
+    max_angular_speed: 2.84
+    battery_capacity_wh: 100.0
+  - id: "Robot_3"
+    namespace: "robot3"
+    home_position: {x:  8.0, y: -8.0, theta: 0.0}
+    model: "turtlebot3_burger"
+    max_speed: 0.5
+    max_angular_speed: 2.84
+    battery_capacity_wh: 100.0
+  - id: "Robot_4"
+    namespace: "robot4"
+    home_position: {x:  8.0, y:  8.0, theta: 0.0}
+    model: "turtlebot3_burger"
+    max_speed: 0.5
+    max_angular_speed: 2.84
+    battery_capacity_wh: 100.0
+
+locations:
+  Shelf_A:            {x: -12.0, y:   0.0, theta: 0.0}
+  Shelf_B:            {x:  -4.0, y:   0.0, theta: 0.0}
+  Shelf_C:            {x:   4.0, y:   0.0, theta: 0.0}
+  Shelf_D:            {x:  12.0, y:   0.0, theta: 0.0}
+  Home_1:             {x:  -8.0, y:  -8.0, theta: 0.0}
+  Home_2:             {x:  -8.0, y:   8.0, theta: 0.0}
+  Home_3:             {x:   8.0, y:  -8.0, theta: 0.0}
+  Home_4:             {x:   8.0, y:   8.0, theta: 0.0}
+  Charging_Station_1: {x: -15.0, y: -15.0, theta: 0.0}
+  Charging_Station_2: {x:  15.0, y: -15.0, theta: 0.0}
+  Waypoint_1:         {x: -12.0, y:  -8.0, theta: 0.0}
+  Waypoint_2:         {x:  -4.0, y:  -8.0, theta: 0.0}
+  Waypoint_3:         {x:   4.0, y:  -8.0, theta: 0.0}
+  Waypoint_4:         {x:  12.0, y:  -8.0, theta: 0.0}
+  Waypoint_5:         {x: -12.0, y:   8.0, theta: 0.0}
+  Waypoint_6:         {x:  -4.0, y:   8.0, theta: 0.0}
+  Waypoint_7:         {x:   4.0, y:   8.0, theta: 0.0}
+  Waypoint_8:         {x:  12.0, y:   8.0, theta: 0.0}
+
+charging_stations:
+  - id: "Charging_Station_1"
+    position: {x: -15.0, y: -15.0}
+    capacity: 2
+    charge_rate_percent_per_second: 2.5
+  - id: "Charging_Station_2"
+    position: {x:  15.0, y: -15.0}
+    capacity: 2
+    charge_rate_percent_per_second: 2.5
+
+battery:
+  low_threshold_percent: 20.0
+  critical_threshold_percent: 10.0
+  drain_rates:
+    IDLE:                 0.04
+    WAITING:              0.04
+    MOVING:               0.55
+    PATROLLING:           0.48
+    NAVIGATING:           0.55
+    INSPECTING:           0.35
+    FORMATION:            0.45
+    TRACKING:             0.50
+    RETURNING_TO_CHARGER: 0.50
+    RESUMING:             0.45
+    EMERGENCY_STOP:       0.02
+    ERROR:                0.02
+    CHARGING:            -2.50
+
+mission_planner:
+  output_dir: "/tmp/warehouse_missions"
+  default_priority: 5
+  loop_missions: true
+  default_speed: 0.3
+
+mission_coordinator:
+  coordination_rate_hz: 10.0
+  task_timeout_seconds: 300.0
+  auto_generate_missions: true
+  mission_loop_delay_seconds: 5.0
+
+navigation:
+  goal_tolerance_xy: 0.25
+  goal_tolerance_theta: 0.1
+  default_timeout_seconds: 120.0
+
+formation:
+  default_type: "square"
+  default_spacing: 1.5
+  update_rate_hz: 5.0
+
+perception:
+  detection_range_meters: 5.0
+  detection_rate_hz: 2.0
+  confidence_threshold: 0.70
+
+safety:
+  emergency_stop_enabled: true
+  collision_avoidance_enabled: true
+  human_detection_emergency_stop: true
+  min_robot_separation_meters: 0.5
+
+dashboard:
+  display_rate_hz: 0.5
+  publish_json_rate_hz: 1.0
+  show_terminal_output: true
