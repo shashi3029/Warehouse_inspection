@@ -270,13 +270,6 @@ class MissionCoordinatorNode(Node):
             else:
                 unassigned.append(task)
 
-        for task in list(self._pending_tasks):
-            if task not in unassigned and task in self._pending_tasks:
-                pass
-
-        self._pending_tasks = [t for t in self._pending_tasks if t in unassigned or
-                                t.robot_id in self._active_assignments]
-
         remaining = []
         for task in self._pending_tasks:
             if task.robot_id in self._active_assignments:

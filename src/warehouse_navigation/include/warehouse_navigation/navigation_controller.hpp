@@ -80,7 +80,7 @@ public:
         return robot_id_;
     }
 
-    static geometry_msgs::msg::PoseStamped make_pose_stamped(
+    geometry_msgs::msg::PoseStamped make_pose_stamped(
         double x, double y, double theta,
         const std::string& frame_id = "map"
     );

@@ -170,6 +170,7 @@ geometry_msgs::msg::PoseStamped NavigationController::make_pose_stamped(
     double x, double y, double theta, const std::string& frame_id)
 {
     geometry_msgs::msg::PoseStamped ps;
+    ps.header.stamp    = get_clock()->now();
     ps.header.frame_id = frame_id;
     ps.pose.position.x = x;
     ps.pose.position.y = y;
