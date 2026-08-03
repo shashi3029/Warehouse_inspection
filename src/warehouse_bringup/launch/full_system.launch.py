@@ -124,15 +124,20 @@ def generate_launch_description():
                               description="Path to pre-built map YAML for AMCL"),
         DeclareLaunchArgument("rviz",         default_value="false",
                               description="Launch RViz2 fleet monitor"),
-        DeclareLaunchArgument("world_file",   default_value="",
-                              description="Override default Gazebo world path"),
+        DeclareLaunchArgument(
+            "world_file",
+            default_value=os.path.join(
+                get_package_share_directory(_PKG_SIM), "worlds", "warehouse.world"
+            ),
+            description="Absolute path to the Gazebo .world file",
+        ),
 
         LogInfo(msg="========================================================"),
         LogInfo(msg=" Warehouse Fleet Management System — Full System Launch  "),
         LogInfo(msg="========================================================"),
         LogInfo(msg=" Robots  : Robot_1, Robot_2, Robot_3, Robot_4           "),
         LogInfo(msg=" Sim     : Gazebo Classic + warehouse.world              "),
-        LogInfo(msg=" Nav     : Nav2 (DWB + NavFn + VoxelLayer costmaps)     "),
+        LogInfo(msg=" Nav     : Nav2 (DWB + NavFn + ObstacleLayer costmaps)  "),
         LogInfo(msg=" Fleet   : Mission Planner → Coordinator → Executors    "),
         LogInfo(msg="========================================================"),
 

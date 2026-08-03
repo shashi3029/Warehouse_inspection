@@ -32,9 +32,12 @@ def generate_launch_description():
     warehouse_desc_dir = get_package_share_directory("warehouse_description")
 
     use_sim_time = LaunchConfiguration("use_sim_time", default="true")
+    world_file   = LaunchConfiguration(
+        "world_file",
+        default=os.path.join(warehouse_sim_dir, "worlds", "warehouse.world"),
+    )
 
     xacro_file = os.path.join(warehouse_desc_dir, "urdf", "warehouse_robot.urdf.xacro")
-    world_file = os.path.join(warehouse_sim_dir, "worlds", "warehouse.world")
 
     gazebo = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -111,6 +114,11 @@ def generate_launch_description():
             "use_sim_time",
             default_value="true",
             description="Use simulation clock",
+        ),
+        DeclareLaunchArgument(
+            "world_file",
+            default_value=os.path.join(warehouse_sim_dir, "worlds", "warehouse.world"),
+            description="Absolute path to the Gazebo .world file",
         ),
         SetEnvironmentVariable("TURTLEBOT3_MODEL", "burger"),
         gazebo,
