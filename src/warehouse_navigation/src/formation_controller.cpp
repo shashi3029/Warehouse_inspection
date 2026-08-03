@@ -71,6 +71,7 @@ FormationController::FormationController(const rclcpp::NodeOptions& options)
 bool FormationController::switch_formation(const std::string& formation_name) {
     auto ft = formation_from_string(formation_name);
     if (ft == current_formation_ && formation_name != "adaptive") {
+        return true;
     }
     current_formation_ = ft;
     RCLCPP_INFO(get_logger(), "Formation switched to: %s", formation_name.c_str());
