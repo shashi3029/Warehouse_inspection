@@ -17,6 +17,7 @@ from launch.actions import (
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import Command, LaunchConfiguration
 from launch_ros.actions import Node, PushRosNamespace
+from launch_ros.parameter_descriptions import ParameterValue
 
 
 ROBOT_CONFIGURATIONS = [
@@ -62,10 +63,13 @@ def generate_launch_description():
         y        = cfg["y"]
         yaw      = cfg["yaw"]
 
-        robot_description = Command(
-            ["xacro ", xacro_file,
-             " robot_name:=", ns,
-             " robot_id:=",   robot_id]
+        robot_description = ParameterValue(
+            Command(
+                ["xacro ", xacro_file,
+                 " robot_name:=", ns,
+                 " robot_id:=",   robot_id]
+            ),
+            value_type=str,
         )
 
         rsp = Node(
