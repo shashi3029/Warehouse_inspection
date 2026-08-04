@@ -74,9 +74,8 @@ def generate_launch_description():
             name="robot_state_publisher",
             output="screen",
             parameters=[{
-                "use_sim_time":       use_sim_time,
-                "robot_description":  robot_description,
-                "frame_prefix":       ns + "/",
+                "use_sim_time":      use_sim_time,
+                "robot_description": robot_description,
             }],
             remappings=[("/tf", "tf"), ("/tf_static", "tf_static")],
         )

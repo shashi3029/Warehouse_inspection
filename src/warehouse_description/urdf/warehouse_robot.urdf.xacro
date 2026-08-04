@@ -228,7 +228,7 @@
       <publish_odom_tf>true</publish_odom_tf>
       <publish_wheel_tf>true</publish_wheel_tf>
       <odometry_topic>odom</odometry_topic>
-      <odometry_frame>${robot_ns}/odom</odometry_frame>
+      <odometry_frame>odom</odometry_frame>
       <robot_base_frame>${robot_ns}/base_footprint</robot_base_frame>
     </plugin>
   </gazebo>

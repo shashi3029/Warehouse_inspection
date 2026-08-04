@@ -26,6 +26,13 @@ _ROBOTS = [
     {"id": "Robot_4", "ns": "robot4", "x":  8.0, "y":  8.0, "yaw": 0.0},
 ]
 
+# DWB critics must be passed explicitly — RewrittenYaml doesn't reliably
+# propagate YAML string-array values through ROS2's parameter loader.
+_DWB_CRITICS = [
+    "RotateToGoal", "Oscillation", "BaseObstacle",
+    "GoalAlign", "PathAlign", "PathDist", "GoalDist",
+]
+
 _PKG_BU = "warehouse_bringup"
 
 
@@ -38,11 +45,19 @@ def _make_nav2_group(robot: dict, nav2_params_file: str, map_yaml: str,
 
     # Rewrite the params file so each key is prefixed with the robot namespace.
     # E.g. "controller_server:" → "robot1/controller_server:"
-    # This allows nodes running under /robot1 to resolve their parameters.
+    # param_rewrites substitutes TF frame IDs that must include the robot
+    # namespace (robot_base_frame, base_frame_id) so they match the URDF link
+    # names that already carry the namespace prefix.  The odom frame is kept
+    # as the plain string "odom" so each robot's isolated TF tree (on its own
+    # /robot1/tf topic) uses an unprefixed frame, matching the Gazebo diff-
+    # drive plugin's odometry_frame and Nav2's global_frame: odom setting.
     configured_params = RewrittenYaml(
         source_file=nav2_params_file,
         root_key=ns,
-        param_rewrites={},
+        param_rewrites={
+            "robot_base_frame": ns + "/base_link",
+            "base_frame_id":    ns + "/base_footprint",
+        },
         convert_types=True,
     )
 
@@ -97,7 +112,10 @@ def _make_nav2_group(robot: dict, nav2_params_file: str, map_yaml: str,
         executable="controller_server",
         name="controller_server",
         output="screen",
-        parameters=[configured_params, {"use_sim_time": use_sim_time}],
+        parameters=[configured_params, {
+            "use_sim_time": use_sim_time,
+            "FollowPath.critics": _DWB_CRITICS,
+        }],
         remappings=remappings,
     )
 
