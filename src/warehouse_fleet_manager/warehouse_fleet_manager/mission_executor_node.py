@@ -314,7 +314,6 @@ class MissionExecutorNode(Node):
     ) -> bool:
         waypoints: List[str] = params.get("waypoints", [start_goal])
         loop: bool = params.get("loop", False)
-        speed: float = params.get("speed", 0.3)
 
         if not waypoints:
             waypoints = [start_goal]
@@ -328,8 +327,7 @@ class MissionExecutorNode(Node):
                 self.get_logger().info(
                     f"[{self._robot_id}] Patrol waypoint {i+1}/{len(waypoints)}: {wp}"
                 )
-                pos = WAREHOUSE_LOCATIONS.get(wp, (0.0, 0.0, 0.0))
-                success = self._simulate_navigation(task_id, wp, pos[0], pos[1])
+                success = self._exec_navigate(task_id, wp, params)
                 if not success:
                     return False
 
@@ -358,9 +356,8 @@ class MissionExecutorNode(Node):
             if self._task_cancelled:
                 return False
 
-            pos = WAREHOUSE_LOCATIONS.get(shelf, (0.0, 0.0, 0.0))
             self.get_logger().info(f"[{self._robot_id}] Navigating to {shelf} for inspection")
-            success = self._simulate_navigation(task_id, shelf, pos[0], pos[1])
+            success = self._exec_navigate(task_id, shelf, {})
             if not success:
                 return False
 
