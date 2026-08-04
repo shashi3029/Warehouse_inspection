@@ -35,8 +35,8 @@
       <geometry>
         <cylinder length="${base_height}" radius="${base_radius}"/>
       </geometry>
-      <material name="dark_grey">
-        <color rgba="0.2 0.2 0.2 1.0"/>
+      <material name="robot_orange">
+        <color rgba="0.95 0.45 0.0 1.0"/>
       </material>
     </visual>
     <collision>
@@ -210,6 +210,11 @@
       </inertial>
     </link>
   </xacro:if>
+
+  <!-- Orange body so robots are visible on the dark concrete floor -->
+  <gazebo reference="${robot_ns}/base_link">
+    <material>Gazebo/Orange</material>
+  </gazebo>
 
   <!-- Differential Drive Plugin -->
   <gazebo>
