@@ -264,13 +264,17 @@ class MissionExecutorNode(Node):
 
         send_future = self._nav_client.send_goal_async(goal_msg)
         if not self._wait_for_future(send_future, timeout_sec=10.0):
-            self.get_logger().error(f"[{self._robot_id}] Goal send timeout for {goal}")
-            return False
+            self.get_logger().warning(
+                f"[{self._robot_id}] Goal send timeout for {goal} — driving directly"
+            )
+            return self._simulate_navigation(task_id, goal, x, y)
 
         goal_handle = send_future.result()
         if not goal_handle.accepted:
-            self.get_logger().error(f"[{self._robot_id}] Goal rejected for {goal}")
-            return False
+            self.get_logger().warning(
+                f"[{self._robot_id}] Nav2 rejected goal for {goal} — driving directly"
+            )
+            return self._simulate_navigation(task_id, goal, x, y)
 
         result_future = goal_handle.get_result_async()
 
@@ -290,19 +294,35 @@ class MissionExecutorNode(Node):
     def _simulate_navigation(
         self, task_id: str, goal: str, x: float, y: float
     ) -> bool:
+        """Drive directly toward target with a P-controller via cmd_vel (no SLAM needed)."""
+        ARRIVAL_DIST = 0.8
+        MAX_LIN = 0.3
+        MAX_ANG = 0.8
+
         start_dist = max(0.01, self._dist_to(x, y))
-        start_time = time.monotonic()
-        avg_speed = 0.3
-        est_duration = start_dist / avg_speed
 
         while not self._task_cancelled:
-            elapsed = time.monotonic() - start_time
-            progress = min(0.95, elapsed / max(1.0, est_duration))
-            self._publish_task_status(task_id, "navigate", goal, progress, False, False)
-
-            if elapsed >= est_duration:
+            dist = self._dist_to(x, y)
+            if dist < ARRIVAL_DIST:
                 break
-            time.sleep(0.5)
+
+            dx = x - self._current_x
+            dy = y - self._current_y
+            target_angle = math.atan2(dy, dx)
+            heading_error = (target_angle - self._current_theta + math.pi) % (2 * math.pi) - math.pi
+
+            twist = Twist()
+            twist.angular.z = max(-MAX_ANG, min(MAX_ANG, 1.5 * heading_error))
+            if abs(heading_error) < 0.5:
+                twist.linear.x = max(0.1, min(MAX_LIN, dist * 0.3))
+
+            self._cmd_vel_pub.publish(twist)
+
+            progress = max(0.05, min(0.95, 1.0 - dist / start_dist))
+            self._publish_task_status(task_id, "navigate", goal, progress, False, False)
+            time.sleep(0.1)
+
+        self._cmd_vel_pub.publish(Twist())
 
         if not self._task_cancelled:
             self._publish_task_status(task_id, "navigate", goal, 1.0, True, False)
