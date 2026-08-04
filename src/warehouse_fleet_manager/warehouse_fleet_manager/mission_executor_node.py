@@ -149,9 +149,9 @@ class MissionExecutorNode(Node):
         )
 
     def _odom_callback(self, msg: Odometry) -> None:
-        # Odom is relative to spawn position; add spawn offset for world frame
-        self._current_x = self._spawn_x + msg.pose.pose.position.x
-        self._current_y = self._spawn_y + msg.pose.pose.position.y
+        # Gazebo diff drive publishes odom in world frame already
+        self._current_x = msg.pose.pose.position.x
+        self._current_y = msg.pose.pose.position.y
         q = msg.pose.pose.orientation
         self._current_theta = math.atan2(
             2.0 * (q.w * q.z + q.x * q.y),
