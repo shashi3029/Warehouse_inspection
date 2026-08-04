@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<sdf version="1.6">
+  <model name="concrete_floor">
+    <static>true</static>
+    <link name="link">
+
+      <collision name="collision">
+        <geometry>
+          <plane>
+            <normal>0 0 1</normal>
+            <size>70 50</size>
+          </plane>
+        </geometry>
+        <surface>
+          <friction>
+            <ode>
+              <mu>1.0</mu>
+              <mu2>1.0</mu2>
+            </ode>
+          </friction>
+        </surface>
+      </collision>
+
+      <visual name="visual">
+        <cast_shadows>false</cast_shadows>
+        <geometry>
+          <plane>
+            <normal>0 0 1</normal>
+            <size>70 50</size>
+          </plane>
+        </geometry>
+        <material>
+          <script>
+            <!-- Gazebo resolves model:// URIs via GAZEBO_MODEL_PATH -->
+            <uri>model://concrete_floor/materials/scripts/concrete_floor.material</uri>
+            <name>WarehouseFloor/Concrete</name>
+          </script>
+        </material>
+      </visual>
+
+    </link>
+  </model>
+</sdf>

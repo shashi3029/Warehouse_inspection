@@ -108,6 +108,10 @@ def generate_launch_description():
             )
         )
 
+    models_dir = os.path.join(warehouse_sim_dir, "models")
+    existing_model_path = os.environ.get("GAZEBO_MODEL_PATH", "")
+    gazebo_model_path = models_dir + (":" + existing_model_path if existing_model_path else "")
+
     return LaunchDescription([
         DeclareLaunchArgument(
             "use_sim_time",
@@ -120,6 +124,7 @@ def generate_launch_description():
             description="Absolute path to the Gazebo .world file",
         ),
         SetEnvironmentVariable("TURTLEBOT3_MODEL", "burger"),
+        SetEnvironmentVariable("GAZEBO_MODEL_PATH", gazebo_model_path),
         gazebo,
         *robot_groups,
     ])

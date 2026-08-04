@@ -1,0 +1,22 @@
+// OGRE material for the warehouse concrete floor
+material WarehouseFloor/Concrete
+{
+    technique
+    {
+        pass
+        {
+            lighting on
+            ambient  0.80 0.80 0.78 1.0
+            diffuse  0.88 0.88 0.86 1.0
+            specular 0.04 0.04 0.04 1.0 12.0
+
+            texture_unit
+            {
+                texture concrete_floor.png
+                // scale < 1 zooms in; 0.015 ≈ every ~1.5 m in world space
+                scale 0.015 0.015
+                filtering trilinear
+            }
+        }
+    }
+}
