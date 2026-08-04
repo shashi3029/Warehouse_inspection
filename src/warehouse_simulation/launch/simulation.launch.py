@@ -89,7 +89,7 @@ def generate_launch_description():
                 "-robot_namespace",  ns,
                 "-x",  str(x),
                 "-y",  str(y),
-                "-z",  "0.01",
+                "-z",  "0.038",
                 "-Y",  str(yaw),
             ],
             output="screen",
