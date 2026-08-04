@@ -30,11 +30,9 @@
           </plane>
         </geometry>
         <material>
-          <script>
-            <!-- Gazebo resolves model:// URIs via GAZEBO_MODEL_PATH -->
-            <uri>model://concrete_floor/materials/scripts/concrete_floor.material</uri>
-            <name>WarehouseFloor/Concrete</name>
-          </script>
+          <ambient>0.68 0.68 0.66 1</ambient>
+          <diffuse>0.75 0.75 0.73 1</diffuse>
+          <specular>0.03 0.03 0.03 1</specular>
         </material>
       </visual>
 
