@@ -14,7 +14,7 @@
 
   <exec_depend>warehouse_fleet_manager</exec_depend>
   <exec_depend>warehouse_navigation</exec_depend>
-  <exec_depend>warehouse_perception</exec_depend>
+  <exec_depend>warehouse_inspection</exec_depend>
   <exec_depend>warehouse_simulation</exec_depend>
   <exec_depend>warehouse_description</exec_depend>
   <exec_depend>warehouse_msgs</exec_depend>

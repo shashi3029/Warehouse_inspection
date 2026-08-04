@@ -17,7 +17,7 @@ _ROBOT_NS  = ["robot1",  "robot2",  "robot3",  "robot4"]
 
 _PKG_FM   = "warehouse_fleet_manager"
 _PKG_NAV  = "warehouse_navigation"
-_PKG_PER  = "warehouse_perception"
+_PKG_INS  = "warehouse_inspection"
 _PKG_BU   = "warehouse_bringup"
 
 
@@ -122,10 +122,10 @@ def generate_launch_description():
             emulate_tty=True,
         )
 
-        vision_detector = Node(
-            package=_PKG_PER,
-            executable="vision_detector",
-            name=f"vision_detector_{ns}",
+        inspection_detector = Node(
+            package=_PKG_INS,
+            executable="inspection_detector",
+            name=f"inspection_detector_{ns}",
             namespace="warehouse",
             parameters=[{
                 "use_sim_time": use_sim_time,
@@ -136,10 +136,10 @@ def generate_launch_description():
             emulate_tty=True,
         )
 
-        target_follower = Node(
-            package=_PKG_PER,
-            executable="target_follower",
-            name=f"target_follower_{ns}",
+        inspection_tracker = Node(
+            package=_PKG_INS,
+            executable="inspection_tracker",
+            name=f"inspection_tracker_{ns}",
             namespace="warehouse",
             parameters=[{
                 "use_sim_time": use_sim_time,
@@ -164,8 +164,8 @@ def generate_launch_description():
         per_robot_nodes.extend([
             battery_manager,
             mission_executor,
-            vision_detector,
-            target_follower,
+            inspection_detector,
+            inspection_tracker,
             nav_controller,
         ])
 

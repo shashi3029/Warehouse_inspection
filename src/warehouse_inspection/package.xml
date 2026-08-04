@@ -1,12 +1,13 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>warehouse_perception</name>
+  <name>warehouse_inspection</name>
   <version>1.0.0</version>
   <description>
-    Vision detection and target following for the warehouse fleet management system.
-    Publishes object detections and implements safe target following with automatic
-    task resumption when targets disappear.
+    Shelf inspection, object detection, and anomaly tracking for the warehouse
+    fleet management system. Publishes Detection messages for inventory, packages,
+    obstacles, and humans; implements safe inspection-target following with
+    automatic task resumption when targets disappear.
   </description>
   <maintainer email="warehouse@industrial.com">Warehouse Fleet System</maintainer>
   <license>Apache-2.0</license>

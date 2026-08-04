@@ -15,7 +15,8 @@ Dashboard output includes:
 
 import json
 import time
-from typing import Dict, Any, List, Optional
+from collections import deque
+from typing import Dict, Any, List, Optional, Deque
 from datetime import datetime, timezone
 
 import rclpy
@@ -23,10 +24,12 @@ from rclpy.node import Node
 from rclpy.qos import QoSProfile, DurabilityPolicy, ReliabilityPolicy
 
 from std_msgs.msg import String
-from warehouse_msgs.msg import FleetStatus, RobotInfo, BatteryStatus, MissionStatus
+from warehouse_msgs.msg import FleetStatus, RobotInfo, BatteryStatus, MissionStatus, Detection
 
 
 ROBOT_IDS = ["Robot_1", "Robot_2", "Robot_3", "Robot_4"]
+
+_MAX_RECENT_DETECTIONS = 6
 
 STATE_COLORS = {
     "IDLE":                  "[  IDLE  ]",
@@ -99,6 +102,8 @@ class FleetDashboardNode(Node):
         self._mission_status: Optional[MissionStatus] = None
         self._battery_status: Dict[str, BatteryStatus] = {}
         self._station_status: Dict[str, Any] = {}
+        self._recent_detections: Deque[Detection] = deque(maxlen=_MAX_RECENT_DETECTIONS)
+        self._detection_counts: Dict[str, int] = {}
         self._start_time = time.monotonic()
 
         self.create_subscription(
@@ -112,6 +117,10 @@ class FleetDashboardNode(Node):
         self.create_subscription(
             String, "/warehouse/charging/station_status",
             self._station_status_callback, 10
+        )
+        self.create_subscription(
+            Detection, "/warehouse/all_detections",
+            self._detection_callback, 10
         )
         for rid in ROBOT_IDS:
             self.create_subscription(
@@ -145,6 +154,11 @@ class FleetDashboardNode(Node):
             self._station_status = json.loads(msg.data)
         except json.JSONDecodeError:
             pass
+
+    def _detection_callback(self, msg: Detection) -> None:
+        self._recent_detections.append(msg)
+        key = msg.detection_type
+        self._detection_counts[key] = self._detection_counts.get(key, 0) + 1
 
     def _display_dashboard(self) -> None:
         if not self._show_terminal:
@@ -239,6 +253,25 @@ class FleetDashboardNode(Node):
                 f"Errors={fs.error_robots}     ║",
             ]
 
+        lines.append("╠══════════════════════════════════════════════════════════════════════╣")
+        lines.append("║  INSPECTION EVENTS (live detections from all robots)                 ║")
+
+        if self._detection_counts:
+            count_parts = "  ".join(
+                f"{k}:{v}" for k, v in sorted(self._detection_counts.items())
+            )
+            lines.append(f"║  Totals: {count_parts[:60]:<60}║")
+        else:
+            lines.append("║  No inspection data yet — robots must be MOVING or INSPECTING       ║")
+
+        if self._recent_detections:
+            lines.append("║  Recent:                                                             ║")
+            for det in list(self._recent_detections)[-_MAX_RECENT_DETECTIONS:]:
+                label = f"{det.robot_id[:8]:<8} {det.detection_type[:14]:<14} {det.object_id[:16]:<16} {det.confidence*100:4.0f}%"
+                lines.append(f"║    {label:<66}║")
+        else:
+            lines.append("║  Waiting for robot detections...                                    ║")
+
         lines.append("╚══════════════════════════════════════════════════════════════════════╝")
         return lines
 
@@ -291,6 +324,22 @@ class FleetDashboardNode(Node):
 
         if self._station_status:
             data["charging_stations"] = self._station_status
+
+        data["inspection"] = {
+            "detection_counts": dict(self._detection_counts),
+            "recent_detections": [
+                {
+                    "robot_id":       d.robot_id,
+                    "detection_type": d.detection_type,
+                    "object_id":      d.object_id,
+                    "confidence":     d.confidence,
+                    "distance":       d.distance,
+                    "is_obstacle":    d.is_obstacle,
+                    "is_human":       d.is_human,
+                }
+                for d in list(self._recent_detections)
+            ],
+        }
 
         msg = String()
         msg.data = json.dumps(data, indent=2)

@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-Target Follower Node
+Inspection Tracker Node
 
-Subscribes to Detection messages and follows the highest-confidence
-TARGET detection within range. Maintains a safe follow distance using
-a proportional velocity controller. When the target is lost for longer
-than the configured timeout the robot publishes a task-resume signal
-to the Mission Coordinator so the previous mission task can continue.
+Subscribes to Detection messages from the inspection detector and follows
+the highest-confidence TARGET detection within range. Maintains a safe
+follow distance using a proportional velocity controller. When the target
+is lost for longer than the configured timeout the robot publishes a
+task-resume signal to the Mission Coordinator so the prior task resumes.
 """
 
 import math
@@ -30,10 +30,10 @@ def robot_ns(robot_id: str) -> str:
     return "/" + robot_id.lower().replace("_", "")
 
 
-class TargetFollowerNode(Node):
+class InspectionTrackerNode(Node):
 
     def __init__(self, robot_id: str):
-        super().__init__(f"target_follower_{robot_id.lower().replace('_', '')}")
+        super().__init__(f"inspection_tracker_{robot_id.lower().replace('_', '')}")
 
         self._robot_id = robot_id
 
@@ -84,7 +84,7 @@ class TargetFollowerNode(Node):
         self._control_timer = self.create_timer(0.1, self._control_loop)
 
         self.get_logger().info(
-            f"TargetFollower ready for {robot_id} "
+            f"InspectionTracker ready for {robot_id} "
             f"(follow_dist={self._follow_distance}m, timeout={self._lost_timeout}s)"
         )
 
@@ -210,7 +210,7 @@ def main(args=None):
     import sys
     robot_id = sys.argv[1] if len(sys.argv) > 1 else "Robot_1"
 
-    node = TargetFollowerNode(robot_id)
+    node = InspectionTrackerNode(robot_id)
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:

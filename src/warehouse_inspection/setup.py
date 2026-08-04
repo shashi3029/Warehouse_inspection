@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'warehouse_perception'
+package_name = 'warehouse_inspection'
 
 setup(
     name=package_name,
@@ -15,13 +15,13 @@ setup(
     zip_safe=True,
     maintainer='Warehouse Fleet System',
     maintainer_email='warehouse@industrial.com',
-    description='Vision detection and target following for warehouse robots',
+    description='Shelf inspection, detection, and anomaly tracking for warehouse robots',
     license='Apache-2.0',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'vision_detector = warehouse_perception.vision_detector_node:main',
-            'target_follower = warehouse_perception.target_follower_node:main',
+            'inspection_detector = warehouse_inspection.inspection_detector_node:main',
+            'inspection_tracker  = warehouse_inspection.inspection_tracker_node:main',
         ],
     },
 )

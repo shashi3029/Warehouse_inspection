@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 """
-Vision Detector Node
+Inspection Detector Node
 
-Simulates warehouse perception for each robot. Publishes Detection messages
-continuously for objects found in the robot's sensor range.
+Runs shelf and inventory inspection for each warehouse robot. Publishes
+Detection messages for every object found within the robot's sensor range.
 
-Detection types supported:
-  SHELF, OBSTACLE, ROBOT, HUMAN, INVENTORY, PACKAGE, TARGET, UNKNOWN_OBJECT
+Detection types: SHELF, INVENTORY, PACKAGE, OBSTACLE, ROBOT, HUMAN, TARGET,
+                 UNKNOWN_OBJECT
 
-In a real deployment this node would subscribe to camera/LiDAR topics and
-run actual detection models. For simulation it generates plausible synthetic
-detections based on the robot's current position and known warehouse geometry.
+In simulation, detections are generated synthetically from the robot's
+odometry position and the known warehouse shelf geometry. In a real
+deployment this node subscribes to the camera and LiDAR topics and passes
+frames through an on-board inference model (e.g. YOLO or a custom CNN).
 """
 
 import math
@@ -63,11 +64,11 @@ def yaw_to_quaternion(yaw: float) -> Quaternion:
     return q
 
 
-class VisionDetectorNode(Node):
+class InspectionDetectorNode(Node):
 
     def __init__(self, robot_id: str):
         ns = robot_ns(robot_id)
-        super().__init__(f"vision_detector_{robot_id.lower().replace('_', '')}")
+        super().__init__(f"inspection_detector_{robot_id.lower().replace('_', '')}")
 
         self._robot_id = robot_id
         self._robot_x: float = 0.0
@@ -98,7 +99,7 @@ class VisionDetectorNode(Node):
         self.create_timer(0.5, self._detection_loop)
 
         self.get_logger().info(
-            f"VisionDetector started for {robot_id}"
+            f"InspectionDetector started for {robot_id}"
         )
 
     def _odom_callback(self, msg: Odometry) -> None:
@@ -201,7 +202,7 @@ def main(args=None):
     import sys
     robot_id = sys.argv[1] if len(sys.argv) > 1 else "Robot_1"
 
-    node = VisionDetectorNode(robot_id)
+    node = InspectionDetectorNode(robot_id)
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:
