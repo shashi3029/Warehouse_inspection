@@ -56,6 +56,13 @@ CHARGING_STATIONS = {
     "Charging_Station_2": ( 15.0, -15.0),
 }
 
+ROBOT_SPAWN_POSITIONS = {
+    "Robot_1": (-8.0, -8.0),
+    "Robot_2": (-8.0,  8.0),
+    "Robot_3": ( 8.0, -8.0),
+    "Robot_4": ( 8.0,  8.0),
+}
+
 INSPECT_ROTATION_STEPS = 8
 INSPECT_STEP_DURATION = 1.5
 SCAN_DURATION = 3.0
@@ -86,8 +93,11 @@ class MissionExecutorNode(Node):
         self._task_thread: Optional[threading.Thread] = None
         self._lock = threading.Lock()
 
-        self._current_x: float = 0.0
-        self._current_y: float = 0.0
+        spawn = ROBOT_SPAWN_POSITIONS.get(robot_id, (0.0, 0.0))
+        self._spawn_x: float = spawn[0]
+        self._spawn_y: float = spawn[1]
+        self._current_x: float = spawn[0]
+        self._current_y: float = spawn[1]
         self._current_theta: float = 0.0
 
         cb_subs = ReentrantCallbackGroup()
@@ -139,8 +149,9 @@ class MissionExecutorNode(Node):
         )
 
     def _odom_callback(self, msg: Odometry) -> None:
-        self._current_x = msg.pose.pose.position.x
-        self._current_y = msg.pose.pose.position.y
+        # Odom is relative to spawn position; add spawn offset for world frame
+        self._current_x = self._spawn_x + msg.pose.pose.position.x
+        self._current_y = self._spawn_y + msg.pose.pose.position.y
         q = msg.pose.pose.orientation
         self._current_theta = math.atan2(
             2.0 * (q.w * q.z + q.x * q.y),
@@ -256,33 +267,53 @@ class MissionExecutorNode(Node):
     def _simulate_navigation(
         self, task_id: str, goal: str, x: float, y: float
     ) -> bool:
-        """Drive directly toward target with a P-controller via cmd_vel (no SLAM needed)."""
-        ARRIVAL_DIST = 0.8
-        MAX_LIN = 0.3
-        MAX_ANG = 0.8
+        """
+        Drive toward target using a curved pursuit controller via cmd_vel.
+        Robot steers AND drives simultaneously — no stop-to-turn phase.
+        Falls back to time-based dead reckoning if odom never arrives.
+        """
+        ARRIVAL_DIST = 1.0
+        MAX_LIN = 0.4
+        MAX_ANG = 1.0
+        RATE = 0.1  # 10 Hz
 
-        start_dist = max(0.01, self._dist_to(x, y))
+        start_dist = max(0.1, self._dist_to(x, y))
+        time_limit = start_dist / 0.2 + 30.0  # generous upper bound
+        elapsed = 0.0
 
-        while not self._task_cancelled:
+        self.get_logger().info(
+            f"[{self._robot_id}] Driving to {goal} "
+            f"({x:.1f},{y:.1f}) from ({self._current_x:.1f},{self._current_y:.1f}) dist={start_dist:.1f}m"
+        )
+
+        while not self._task_cancelled and elapsed < time_limit:
             dist = self._dist_to(x, y)
+
             if dist < ARRIVAL_DIST:
                 break
 
             dx = x - self._current_x
             dy = y - self._current_y
             target_angle = math.atan2(dy, dx)
-            heading_error = (target_angle - self._current_theta + math.pi) % (2 * math.pi) - math.pi
+            heading_error = (
+                (target_angle - self._current_theta + math.pi) % (2 * math.pi) - math.pi
+            )
 
             twist = Twist()
-            twist.angular.z = max(-MAX_ANG, min(MAX_ANG, 1.5 * heading_error))
-            if abs(heading_error) < 0.5:
-                twist.linear.x = max(0.1, min(MAX_LIN, dist * 0.3))
+            # Always move forward — speed tapers near arrival
+            twist.linear.x = min(MAX_LIN, max(0.15, dist * 0.4))
+            # Steer toward target proportionally
+            twist.angular.z = max(-MAX_ANG, min(MAX_ANG, 2.0 * heading_error))
+            # Slow down forward speed when turning sharply
+            if abs(heading_error) > 1.0:
+                twist.linear.x *= 0.4
 
             self._cmd_vel_pub.publish(twist)
 
             progress = max(0.05, min(0.95, 1.0 - dist / start_dist))
             self._publish_task_status(task_id, "navigate", goal, progress, False, False)
-            time.sleep(0.1)
+            time.sleep(RATE)
+            elapsed += RATE
 
         self._cmd_vel_pub.publish(Twist())
 
