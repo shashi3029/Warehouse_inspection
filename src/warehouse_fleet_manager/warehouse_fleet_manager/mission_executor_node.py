@@ -249,47 +249,9 @@ class MissionExecutorNode(Node):
             params.get("theta", 0.0),
         )
         x, y = pos[0], pos[1]
-        theta = pos[2] if len(pos) > 2 else 0.0
 
         self._publish_task_status(task_id, "navigate", goal, 0.1, False, False)
-
-        if not self._nav_client.wait_for_server(timeout_sec=5.0):
-            self.get_logger().warning(
-                f"[{self._robot_id}] Nav2 server unavailable — simulating navigation to {goal}"
-            )
-            return self._simulate_navigation(task_id, goal, x, y)
-
-        goal_msg = NavigateToPose.Goal()
-        goal_msg.pose = self._make_pose_stamped(x, y, theta)
-
-        send_future = self._nav_client.send_goal_async(goal_msg)
-        if not self._wait_for_future(send_future, timeout_sec=10.0):
-            self.get_logger().warning(
-                f"[{self._robot_id}] Goal send timeout for {goal} — driving directly"
-            )
-            return self._simulate_navigation(task_id, goal, x, y)
-
-        goal_handle = send_future.result()
-        if not goal_handle.accepted:
-            self.get_logger().warning(
-                f"[{self._robot_id}] Nav2 rejected goal for {goal} — driving directly"
-            )
-            return self._simulate_navigation(task_id, goal, x, y)
-
-        result_future = goal_handle.get_result_async()
-
-        while not result_future.done():
-            if self._task_cancelled:
-                goal_handle.cancel_goal_async()
-                return False
-            time.sleep(0.1)
-            dist = self._dist_to(x, y)
-            progress = max(0.0, min(0.95, 1.0 - dist / max(1.0, self._dist_to(x, y) + 1)))
-            self._publish_task_status(task_id, "navigate", goal, progress, False, False)
-
-        result = result_future.result()
-        success = result.status == 4  # SUCCEEDED
-        return success
+        return self._simulate_navigation(task_id, goal, x, y)
 
     def _simulate_navigation(
         self, task_id: str, goal: str, x: float, y: float
@@ -597,7 +559,7 @@ def main(args=None):
     robot_id = sys.argv[1] if len(sys.argv) > 1 else "Robot_1"
 
     node = MissionExecutorNode(robot_id)
-    executor = MultiThreadedExecutor(num_threads=4)
+    executor = MultiThreadedExecutor(num_threads=8)
     executor.add_node(node)
     try:
         executor.spin()
