@@ -19,12 +19,11 @@
   <xacro:property name="wheel_offset_z"  value="-0.005"/>
   <xacro:property name="caster_offset_x" value="0.064"/>
   <xacro:property name="caster_offset_z" value="-0.004"/>
-  <!-- Visual scale — enlarged for visibility without affecting physics -->
-  <xacro:property name="body_r"          value="0.130"/>
-  <!-- TurtleBot3 Burger plate z positions relative to base_link -->
-  <xacro:property name="plate_bot_z"     value="-0.030"/>
-  <xacro:property name="plate_top_z"     value=" 0.060"/>
-  <xacro:property name="mid_z"           value=" 0.015"/>
+  <!-- Visual scale — 5x enlarged for warehouse visibility (physics unchanged) -->
+  <xacro:property name="body_r"          value="0.650"/>
+  <xacro:property name="plate_bot_z"     value="-0.150"/>
+  <xacro:property name="plate_top_z"     value=" 0.300"/>
+  <xacro:property name="mid_z"           value=" 0.075"/>
 
   <!-- ── Base footprint ── -->
   <link name="${robot_ns}/base_footprint"/>
@@ -57,38 +56,50 @@
 
     <!-- ── Battery/electronics module (centre, between plates) ── -->
     <visual>
-      <origin xyz="-0.048 0 ${mid_z}" rpy="0 0 0"/>
-      <geometry><box size="0.085 0.058 0.058"/></geometry>
+      <origin xyz="-0.240 0 ${mid_z}" rpy="0 0 0"/>
+      <geometry><box size="0.425 0.290 0.290"/></geometry>
       <material name="tb3_black"/>
     </visual>
 
     <!-- ── Front sensor block ── -->
     <visual>
-      <origin xyz="0.038 0 ${mid_z}" rpy="0 0 0"/>
-      <geometry><box size="0.050 0.040 0.040"/></geometry>
+      <origin xyz="0.190 0 ${mid_z}" rpy="0 0 0"/>
+      <geometry><box size="0.250 0.200 0.200"/></geometry>
       <material name="tb3_dark_metal"><color rgba="0.18 0.18 0.18 1.0"/></material>
     </visual>
 
     <!-- ── 4 aluminium standoff columns ── -->
     <visual>
-      <origin xyz="0.020  0.062 ${mid_z}" rpy="0 0 0"/>
-      <geometry><cylinder length="0.090" radius="0.009"/></geometry>
+      <origin xyz=" 0.100  0.310 ${mid_z}" rpy="0 0 0"/>
+      <geometry><cylinder length="0.450" radius="0.045"/></geometry>
       <material name="tb3_dark_metal"/>
     </visual>
     <visual>
-      <origin xyz="0.020 -0.062 ${mid_z}" rpy="0 0 0"/>
-      <geometry><cylinder length="0.090" radius="0.009"/></geometry>
+      <origin xyz=" 0.100 -0.310 ${mid_z}" rpy="0 0 0"/>
+      <geometry><cylinder length="0.450" radius="0.045"/></geometry>
       <material name="tb3_dark_metal"/>
     </visual>
     <visual>
-      <origin xyz="-0.090  0.062 ${mid_z}" rpy="0 0 0"/>
-      <geometry><cylinder length="0.090" radius="0.009"/></geometry>
+      <origin xyz="-0.450  0.310 ${mid_z}" rpy="0 0 0"/>
+      <geometry><cylinder length="0.450" radius="0.045"/></geometry>
       <material name="tb3_dark_metal"/>
     </visual>
     <visual>
-      <origin xyz="-0.090 -0.062 ${mid_z}" rpy="0 0 0"/>
-      <geometry><cylinder length="0.090" radius="0.009"/></geometry>
+      <origin xyz="-0.450 -0.310 ${mid_z}" rpy="0 0 0"/>
+      <geometry><cylinder length="0.450" radius="0.045"/></geometry>
       <material name="tb3_dark_metal"/>
+    </visual>
+
+    <!-- ── Visibility beacon: tall orange pole + sphere (clearly visible top-down) ── -->
+    <visual>
+      <origin xyz="0 0 0.900" rpy="0 0 0"/>
+      <geometry><cylinder length="1.600" radius="0.045"/></geometry>
+      <material name="beacon_orange"><color rgba="1.0 0.4 0.0 1.0"/></material>
+    </visual>
+    <visual>
+      <origin xyz="0 0 1.750" rpy="0 0 0"/>
+      <geometry><sphere radius="0.120"/></geometry>
+      <material name="beacon_orange"/>
     </visual>
 
     <!-- ── Collision (original cylinder — physics unchanged) ── -->
@@ -187,24 +198,24 @@
     <joint name="${robot_ns}/scan_joint" type="fixed">
       <parent link="${robot_ns}/base_link"/>
       <child  link="${robot_ns}/base_scan"/>
-      <origin xyz="-0.032 0 0.172" rpy="0 0 0"/>
+      <origin xyz="-0.160 0 0.860" rpy="0 0 0"/>
     </joint>
     <link name="${robot_ns}/base_scan">
-      <!-- Outer housing cylinder -->
+      <!-- Outer housing cylinder (5x scaled) -->
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0"/>
-        <geometry><cylinder length="0.040" radius="0.038"/></geometry>
+        <geometry><cylinder length="0.200" radius="0.190"/></geometry>
         <material name="tb3_lidar_black"><color rgba="0.08 0.08 0.08 1.0"/></material>
       </visual>
-      <!-- Sensor window ring (thin lighter ring in the middle) -->
+      <!-- Sensor window ring -->
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0"/>
-        <geometry><cylinder length="0.008" radius="0.040"/></geometry>
+        <geometry><cylinder length="0.040" radius="0.200"/></geometry>
         <material name="tb3_sensor_ring"><color rgba="0.30 0.30 0.30 1.0"/></material>
       </visual>
       <collision>
         <origin xyz="0 0 0" rpy="0 0 0"/>
-        <geometry><cylinder length="0.040" radius="0.038"/></geometry>
+        <geometry><cylinder length="0.200" radius="0.190"/></geometry>
       </collision>
       <inertial>
         <mass value="0.114"/>
@@ -264,9 +275,15 @@
     </link>
   </xacro:if>
 
-  <!-- ── Gazebo material overrides — full black body ── -->
+  <!-- ── Gazebo material overrides ── -->
   <gazebo reference="${robot_ns}/base_link">
-    <material>Gazebo/FlatBlack</material>
+    <visual>
+      <material>
+        <ambient>0.08 0.08 0.08 1</ambient>
+        <diffuse>0.12 0.12 0.12 1</diffuse>
+        <specular>0.05 0.05 0.05 1</specular>
+      </material>
+    </visual>
   </gazebo>
   <gazebo reference="${robot_ns}/wheel_left_link">
     <material>Gazebo/FlatBlack</material>
