@@ -23,6 +23,7 @@ from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy
 from std_msgs.msg import String
 from geometry_msgs.msg import Twist, PoseStamped, Pose2D
 from nav_msgs.msg import Odometry
+from sensor_msgs.msg import LaserScan
 from nav2_msgs.action import NavigateToPose
 
 from warehouse_msgs.msg import TaskStatus, RobotState, BatteryStatus
@@ -99,6 +100,7 @@ class MissionExecutorNode(Node):
         self._current_x: float = spawn[0]
         self._current_y: float = spawn[1]
         self._current_theta: float = 0.0
+        self._last_scan: Optional[LaserScan] = None
 
         cb_subs = ReentrantCallbackGroup()
         cb_nav = ReentrantCallbackGroup()
@@ -114,6 +116,13 @@ class MissionExecutorNode(Node):
             Odometry,
             f"{ns}/odom",
             self._odom_callback,
+            10,
+            callback_group=cb_subs,
+        )
+        self._scan_sub = self.create_subscription(
+            LaserScan,
+            f"{ns}/scan",
+            self._scan_callback,
             10,
             callback_group=cb_subs,
         )
@@ -157,6 +166,63 @@ class MissionExecutorNode(Node):
             2.0 * (q.w * q.z + q.x * q.y),
             1.0 - 2.0 * (q.y * q.y + q.z * q.z),
         )
+
+    def _scan_callback(self, msg: LaserScan) -> None:
+        self._last_scan = msg
+
+    def _avoid_obstacles(self, desired: Twist) -> Twist:
+        """
+        Blend desired velocity with reactive obstacle avoidance.
+        Uses the 360° laser scan: if anything is within WARN_DIST ahead,
+        slow down and steer toward the clearer side.
+        """
+        if self._last_scan is None:
+            return desired
+
+        ranges = self._last_scan.ranges
+        n = len(ranges)
+        if n == 0:
+            return desired
+
+        max_r = self._last_scan.range_max or 12.0
+        clean = [r if math.isfinite(r) and r > 0.0 else max_r for r in ranges]
+
+        # With min_angle=-π and 360 samples, index n//2 ≈ forward direction
+        front = n // 2
+        arc45 = n // 8  # 45 degrees worth of indices
+
+        # Minimum distance in ±45° forward arc
+        front_slice = clean[front - arc45 : front + arc45 + 1]
+        front_min = min(front_slice) if front_slice else max_r
+
+        WARN_DIST = 2.5   # begin slowing
+        DODGE_DIST = 1.2  # hard steer
+
+        if front_min >= WARN_DIST:
+            return desired
+
+        # Left sector (indices front+arc45 → front+3*arc45)
+        left_slice  = clean[front + arc45 : front + arc45 * 3]
+        # Right sector (indices front-3*arc45 → front-arc45)
+        right_slice = clean[front - arc45 * 3 : front - arc45]
+
+        left_clear  = sum(left_slice)  / len(left_slice)  if left_slice  else 0.0
+        right_clear = sum(right_slice) / len(right_slice) if right_slice else 0.0
+
+        out = Twist()
+        # Slow in proportion to how close the obstacle is
+        speed_factor = max(0.1, (front_min - DODGE_DIST) / (WARN_DIST - DODGE_DIST))
+        out.linear.x = desired.linear.x * speed_factor
+
+        if front_min < DODGE_DIST:
+            # Hard steer toward the clearer side
+            out.angular.z = 2.5 if left_clear > right_clear else -2.5
+        else:
+            # Gentle blend with goal-seeking steer
+            dodge = 1.5 if left_clear > right_clear else -1.5
+            out.angular.z = desired.angular.z * 0.3 + dodge * 0.7
+
+        return out
 
     def _task_command_callback(self, msg: String) -> None:
         try:
@@ -273,12 +339,12 @@ class MissionExecutorNode(Node):
         Falls back to time-based dead reckoning if odom never arrives.
         """
         ARRIVAL_DIST = 1.0
-        MAX_LIN = 5.0
-        MAX_ANG = 4.0
-        RATE = 0.05  # 20 Hz for smoother control at high speed
+        MAX_LIN = 1.5
+        MAX_ANG = 2.0
+        RATE = 0.1  # 10 Hz
 
         start_dist = max(0.1, self._dist_to(x, y))
-        time_limit = start_dist / 1.0 + 15.0  # generous upper bound
+        time_limit = start_dist / 0.5 + 20.0  # generous upper bound
         elapsed = 0.0
 
         self.get_logger().info(
@@ -301,12 +367,15 @@ class MissionExecutorNode(Node):
 
             twist = Twist()
             # Always move forward — speed tapers near arrival
-            twist.linear.x = min(MAX_LIN, max(1.0, dist * 2.0))
+            twist.linear.x = min(MAX_LIN, max(0.3, dist * 0.6))
             # Steer toward target proportionally
             twist.angular.z = max(-MAX_ANG, min(MAX_ANG, 2.0 * heading_error))
-            # Slow down forward speed when turning sharply
+            # Slow down when turning sharply
             if abs(heading_error) > 1.0:
                 twist.linear.x *= 0.5
+
+            # Obstacle avoidance overrides goal-seeking when path is blocked
+            twist = self._avoid_obstacles(twist)
 
             self._cmd_vel_pub.publish(twist)
 
