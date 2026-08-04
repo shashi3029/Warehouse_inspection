@@ -150,23 +150,11 @@ def generate_launch_description():
             emulate_tty=True,
         )
 
-        nav_controller = Node(
-            package=_PKG_NAV,
-            executable="navigation_controller",
-            name=f"navigation_controller_{ns}",
-            parameters=[{
-                "use_sim_time": use_sim_time,
-            }],
-            arguments=[robot_id],
-            output="screen",
-        )
-
         per_robot_nodes.extend([
             battery_manager,
             mission_executor,
             inspection_detector,
             inspection_tracker,
-            nav_controller,
         ])
 
     # ------------------------------------------------------------------ #

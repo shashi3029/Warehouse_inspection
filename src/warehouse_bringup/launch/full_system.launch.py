@@ -21,7 +21,7 @@ from launch.actions import (
     LogInfo,
     TimerAction,
 )
-from launch.conditions import IfCondition
+from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
@@ -47,6 +47,7 @@ def generate_launch_description():
 
     use_sim_time = LaunchConfiguration("use_sim_time", default="true")
     use_slam     = LaunchConfiguration("use_slam",     default="false")
+    use_nav2     = LaunchConfiguration("use_nav2",     default="false")
     use_rviz     = LaunchConfiguration("rviz",         default="false")
     map_yaml     = LaunchConfiguration("map_yaml",     default="")
     world_file   = LaunchConfiguration(
@@ -71,7 +72,7 @@ def generate_launch_description():
     )
 
     # ------------------------------------------------------------------ #
-    # 2. Nav2 for all robots (staggered inside multi_robot.launch.py)     #
+    # 2. Nav2 for all robots (optional — skip when no map/SLAM ready)     #
     # ------------------------------------------------------------------ #
     navigation = TimerAction(
         period=10.0,
@@ -82,6 +83,7 @@ def generate_launch_description():
                      use_slam=use_slam,
                      map_yaml=map_yaml),
         ],
+        condition=IfCondition(use_nav2),
     )
 
     # ------------------------------------------------------------------ #
@@ -118,6 +120,8 @@ def generate_launch_description():
         # Arguments
         DeclareLaunchArgument("use_sim_time", default_value="true",
                               description="Use Gazebo simulation clock"),
+        DeclareLaunchArgument("use_nav2",     default_value="false",
+                              description="Launch Nav2 stack (requires map or SLAM ready)"),
         DeclareLaunchArgument("use_slam",     default_value="false",
                               description="Map with SLAM Toolbox; skip AMCL"),
         DeclareLaunchArgument("map_yaml",     default_value="",
