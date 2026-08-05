@@ -319,12 +319,12 @@ class MissionExecutorNode(Node):
         Falls back to time-based dead reckoning if odom never arrives.
         """
         ARRIVAL_DIST = 1.0
-        MAX_LIN = 4.0
-        MAX_ANG = 3.0
-        RATE = 0.05  # 20 Hz for stable control at higher speed
+        MAX_LIN = 8.0
+        MAX_ANG = 4.0
+        RATE = 0.05  # 20 Hz
 
         start_dist = max(0.1, self._dist_to(x, y))
-        time_limit = start_dist / 1.0 + 15.0  # generous upper bound
+        time_limit = start_dist / 2.0 + 15.0  # generous upper bound
         elapsed = 0.0
 
         self.get_logger().info(
@@ -347,7 +347,7 @@ class MissionExecutorNode(Node):
 
             twist = Twist()
             # Always move forward — speed tapers near arrival
-            twist.linear.x = min(MAX_LIN, max(0.8, dist * 1.5))
+            twist.linear.x = min(MAX_LIN, max(2.0, dist * 2.0))
             # Steer toward target proportionally
             twist.angular.z = max(-MAX_ANG, min(MAX_ANG, 2.0 * heading_error))
             # Slow down when turning sharply
