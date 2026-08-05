@@ -318,9 +318,9 @@ class MissionExecutorNode(Node):
         Robot steers AND drives simultaneously — no stop-to-turn phase.
         Falls back to time-based dead reckoning if odom never arrives.
         """
-        ARRIVAL_DIST = 1.0
-        MAX_LIN = 3.5
-        MAX_ANG = 2.5
+        ARRIVAL_DIST = 0.5
+        MAX_LIN = 1.5
+        MAX_ANG = 2.84
         RATE = 0.05  # 20 Hz
 
         start_dist = max(0.1, self._dist_to(x, y))
@@ -347,7 +347,7 @@ class MissionExecutorNode(Node):
 
             twist = Twist()
             # Speed tapers as robot approaches; minimum 0.6 m/s so it always closes in
-            twist.linear.x = min(MAX_LIN, max(0.6, dist * 1.5))
+            twist.linear.x = min(MAX_LIN, max(0.15, dist * 1.2))
             # Steer toward target proportionally
             twist.angular.z = max(-MAX_ANG, min(MAX_ANG, 2.0 * heading_error))
             # Slow down when turning sharply (>~57°)
