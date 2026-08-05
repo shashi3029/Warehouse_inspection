@@ -195,8 +195,8 @@ class MissionExecutorNode(Node):
         front_slice = clean[front - arc45 : front + arc45 + 1]
         front_min = min(front_slice) if front_slice else max_r
 
-        WARN_DIST = 2.5   # begin slowing
-        DODGE_DIST = 1.2  # hard steer
+        WARN_DIST = 1.0   # begin slowing — shelves exist at ~2-4m so use tight threshold
+        DODGE_DIST = 0.4  # hard steer only at near-collision
 
         if front_min >= WARN_DIST:
             return desired
@@ -210,17 +210,17 @@ class MissionExecutorNode(Node):
         right_clear = sum(right_slice) / len(right_slice) if right_slice else 0.0
 
         out = Twist()
-        # Slow in proportion to how close the obstacle is
-        speed_factor = max(0.1, (front_min - DODGE_DIST) / (WARN_DIST - DODGE_DIST))
+        # Keep at least 40% forward speed so robot never stalls
+        speed_factor = max(0.4, (front_min - DODGE_DIST) / (WARN_DIST - DODGE_DIST))
         out.linear.x = desired.linear.x * speed_factor
 
         if front_min < DODGE_DIST:
             # Hard steer toward the clearer side
-            out.angular.z = 2.5 if left_clear > right_clear else -2.5
+            out.angular.z = 2.0 if left_clear > right_clear else -2.0
         else:
             # Gentle blend with goal-seeking steer
-            dodge = 1.5 if left_clear > right_clear else -1.5
-            out.angular.z = desired.angular.z * 0.3 + dodge * 0.7
+            dodge = 1.0 if left_clear > right_clear else -1.0
+            out.angular.z = desired.angular.z * 0.5 + dodge * 0.5
 
         return out
 
