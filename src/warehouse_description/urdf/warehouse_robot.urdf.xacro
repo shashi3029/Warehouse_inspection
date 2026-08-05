@@ -25,32 +25,11 @@
   <xacro:property name="caster_front_x"  value=" 0.395"/>
   <xacro:property name="caster_rear_x"   value="-0.395"/>
 
-  <!-- Pre-computed geometry constants (base_link frame) -->
-  <!-- body_bottom = -0.175 + 0.020(clearance) = -0.155                  -->
-  <!-- body_z      = -0.155 + 0.200             =  0.045  (body centre)   -->
-  <!-- body_top    =  0.045 + 0.200             =  0.245                  -->
-  <!-- lid_cz      =  0.245 + 0.013             =  0.258                  -->
-  <!-- bumper_cz   = -0.155 + 0.130             = -0.025                  -->
-  <!-- mast_cz     =  0.271 + 0.450             =  0.721  (mast centre)   -->
-  <!-- beacon_cz   =  1.171 + 0.110             =  1.281                  -->
-  <!-- dome_cz     =  1.281 + 0.100 + 0.090     =  1.471                  -->
-
+  <!-- body_z = body centre in base_link frame -->
   <xacro:property name="body_z"   value=" 0.045"/>
   <xacro:property name="body_h"   value=" 0.400"/>
 
-  <!-- ════════════════════════════════════════
-       Helper macro: inertia-free visual link
-       (used for all decoration-only links)
-       ════════════════════════════════════════ -->
-  <xacro:macro name="visual_link" params="name">
-    <link name="${robot_ns}/${name}">
-      <inertial>
-        <mass value="0.001"/>
-        <inertia ixx="1e-9" iyy="1e-9" izz="1e-9" ixy="0" ixz="0" iyz="0"/>
-      </inertial>
-    </link>
-  </xacro:macro>
-
+  <!-- Helper macro: fixed joint only (no visual_link macro — links defined inline) -->
   <xacro:macro name="fixed_joint" params="name parent child ox oy oz">
     <joint name="${robot_ns}/${name}" type="fixed">
       <parent link="${robot_ns}/${parent}"/>
@@ -97,7 +76,6 @@
   <!-- ═══════════════════════════════════════════════════════════════════
        2. TOP LID — charcoal overhanging plate
        ═══════════════════════════════════════════════════════════════════ -->
-  <xacro:visual_link name="lid_link"/>
   <xacro:fixed_joint name="lid_jnt" parent="base_link" child="lid_link"
                      ox="0" oy="0" oz="0.258"/>
   <link name="${robot_ns}/lid_link">
@@ -105,6 +83,10 @@
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry><box size="0.920 0.670 0.026"/></geometry>
     </visual>
+    <inertial>
+      <mass value="0.001"/>
+      <inertia ixx="1e-9" iyy="1e-9" izz="1e-9" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
   </link>
   <gazebo reference="${robot_ns}/lid_link">
     <material>
@@ -117,7 +99,6 @@
   <!-- ═══════════════════════════════════════════════════════════════════
        3. FRONT BUMPER — charcoal safety bar + yellow warning stripe
        ═══════════════════════════════════════════════════════════════════ -->
-  <xacro:visual_link name="bumper_front_link"/>
   <xacro:fixed_joint name="bumper_front_jnt" parent="base_link" child="bumper_front_link"
                      ox="0.481" oy="0" oz="-0.025"/>
   <link name="${robot_ns}/bumper_front_link">
@@ -125,11 +106,14 @@
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry><box size="0.062 0.720 0.260"/></geometry>
     </visual>
-    <!-- Warning stripe -->
     <visual>
       <origin xyz="0.002 0 0.090" rpy="0 0 0"/>
       <geometry><box size="0.064 0.722 0.042"/></geometry>
     </visual>
+    <inertial>
+      <mass value="0.001"/>
+      <inertia ixx="1e-9" iyy="1e-9" izz="1e-9" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
   </link>
   <gazebo reference="${robot_ns}/bumper_front_link">
     <material>
@@ -142,7 +126,6 @@
   <!-- ═══════════════════════════════════════════════════════════════════
        4. REAR BUMPER
        ═══════════════════════════════════════════════════════════════════ -->
-  <xacro:visual_link name="bumper_rear_link"/>
   <xacro:fixed_joint name="bumper_rear_jnt" parent="base_link" child="bumper_rear_link"
                      ox="-0.481" oy="0" oz="-0.025"/>
   <link name="${robot_ns}/bumper_rear_link">
@@ -154,6 +137,10 @@
       <origin xyz="-0.002 0 0.090" rpy="0 0 0"/>
       <geometry><box size="0.064 0.722 0.042"/></geometry>
     </visual>
+    <inertial>
+      <mass value="0.001"/>
+      <inertia ixx="1e-9" iyy="1e-9" izz="1e-9" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
   </link>
   <gazebo reference="${robot_ns}/bumper_rear_link">
     <material>
@@ -166,7 +153,6 @@
   <!-- ═══════════════════════════════════════════════════════════════════
        5. SIDE ACCENT STRIPES — thin dark panels each side
        ═══════════════════════════════════════════════════════════════════ -->
-  <xacro:visual_link name="accent_left_link"/>
   <xacro:fixed_joint name="accent_left_jnt" parent="base_link" child="accent_left_link"
                      ox="0" oy="0.336" oz="0.045"/>
   <link name="${robot_ns}/accent_left_link">
@@ -174,6 +160,10 @@
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry><box size="0.900 0.022 0.400"/></geometry>
     </visual>
+    <inertial>
+      <mass value="0.001"/>
+      <inertia ixx="1e-9" iyy="1e-9" izz="1e-9" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
   </link>
   <gazebo reference="${robot_ns}/accent_left_link">
     <material>
@@ -183,7 +173,6 @@
     </material>
   </gazebo>
 
-  <xacro:visual_link name="accent_right_link"/>
   <xacro:fixed_joint name="accent_right_jnt" parent="base_link" child="accent_right_link"
                      ox="0" oy="-0.336" oz="0.045"/>
   <link name="${robot_ns}/accent_right_link">
@@ -191,6 +180,10 @@
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry><box size="0.900 0.022 0.400"/></geometry>
     </visual>
+    <inertial>
+      <mass value="0.001"/>
+      <inertia ixx="1e-9" iyy="1e-9" izz="1e-9" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
   </link>
   <gazebo reference="${robot_ns}/accent_right_link">
     <material>
@@ -203,20 +196,21 @@
   <!-- ═══════════════════════════════════════════════════════════════════
        6. IDENTIFICATION MAST — orange tapered pole
        ═══════════════════════════════════════════════════════════════════ -->
-  <xacro:visual_link name="mast_link"/>
   <xacro:fixed_joint name="mast_jnt" parent="base_link" child="mast_link"
                      ox="0" oy="0" oz="0.721"/>
   <link name="${robot_ns}/mast_link">
-    <!-- Lower mast half (thicker) -->
     <visual>
       <origin xyz="0 0 -0.225" rpy="0 0 0"/>
       <geometry><cylinder length="0.450" radius="0.062"/></geometry>
     </visual>
-    <!-- Upper mast half (thinner — tapered look) -->
     <visual>
       <origin xyz="0 0  0.225" rpy="0 0 0"/>
       <geometry><cylinder length="0.450" radius="0.048"/></geometry>
     </visual>
+    <inertial>
+      <mass value="0.001"/>
+      <inertia ixx="1e-9" iyy="1e-9" izz="1e-9" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
   </link>
   <gazebo reference="${robot_ns}/mast_link">
     <material>
@@ -229,20 +223,21 @@
   <!-- ═══════════════════════════════════════════════════════════════════
        7. 360° SENSOR RING — dark grey housing at mid-mast
        ═══════════════════════════════════════════════════════════════════ -->
-  <xacro:visual_link name="sensor_ring_link"/>
   <xacro:fixed_joint name="sensor_ring_jnt" parent="base_link" child="sensor_ring_link"
                      ox="0" oy="0" oz="0.721"/>
   <link name="${robot_ns}/sensor_ring_link">
-    <!-- Outer housing disc -->
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry><cylinder length="0.115" radius="0.145"/></geometry>
     </visual>
-    <!-- Blue sensor window band -->
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry><cylinder length="0.040" radius="0.152"/></geometry>
     </visual>
+    <inertial>
+      <mass value="0.001"/>
+      <inertia ixx="1e-9" iyy="1e-9" izz="1e-9" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
   </link>
   <gazebo reference="${robot_ns}/sensor_ring_link">
     <material>
@@ -253,9 +248,8 @@
   </gazebo>
 
   <!-- ═══════════════════════════════════════════════════════════════════
-       8. SAFETY BEACON — bright blue cylinder + sphere
+       8. SAFETY BEACON — bright blue cylinder
        ═══════════════════════════════════════════════════════════════════ -->
-  <xacro:visual_link name="beacon_link"/>
   <xacro:fixed_joint name="beacon_jnt" parent="base_link" child="beacon_link"
                      ox="0" oy="0" oz="1.281"/>
   <link name="${robot_ns}/beacon_link">
@@ -263,6 +257,10 @@
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry><cylinder length="0.200" radius="0.068"/></geometry>
     </visual>
+    <inertial>
+      <mass value="0.001"/>
+      <inertia ixx="1e-9" iyy="1e-9" izz="1e-9" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
   </link>
   <gazebo reference="${robot_ns}/beacon_link">
     <material>
@@ -273,7 +271,9 @@
     </material>
   </gazebo>
 
-  <xacro:visual_link name="dome_link"/>
+  <!-- ═══════════════════════════════════════════════════════════════════
+       9. BEACON DOME — blue sphere on top
+       ═══════════════════════════════════════════════════════════════════ -->
   <xacro:fixed_joint name="dome_jnt" parent="base_link" child="dome_link"
                      ox="0" oy="0" oz="1.471"/>
   <link name="${robot_ns}/dome_link">
@@ -281,6 +281,10 @@
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry><sphere radius="0.090"/></geometry>
     </visual>
+    <inertial>
+      <mass value="0.001"/>
+      <inertia ixx="1e-9" iyy="1e-9" izz="1e-9" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
   </link>
   <gazebo reference="${robot_ns}/dome_link">
     <material>
@@ -292,7 +296,7 @@
   </gazebo>
 
   <!-- ═══════════════════════════════════════════════════════════════════
-       9 & 10. DRIVE WHEELS  (left + right)
+       10 & 11. DRIVE WHEELS  (left + right)
        ═══════════════════════════════════════════════════════════════════ -->
   <joint name="${robot_ns}/wheel_left_joint" type="continuous">
     <parent link="${robot_ns}/base_link"/>
@@ -301,12 +305,10 @@
     <axis   xyz="0 0 1"/>
   </joint>
   <link name="${robot_ns}/wheel_left_link">
-    <!-- Tyre -->
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry><cylinder length="${wheel_width}" radius="${wheel_radius}"/></geometry>
     </visual>
-    <!-- Hub cap -->
     <visual>
       <origin xyz="0 0 0.042" rpy="0 0 0"/>
       <geometry><cylinder length="0.018" radius="0.088"/></geometry>
@@ -355,7 +357,7 @@
   </gazebo>
 
   <!-- ═══════════════════════════════════════════════════════════════════
-       11 & 12. CASTER BALLS (front + rear)
+       12 & 13. CASTER BALLS (front + rear)
        ═══════════════════════════════════════════════════════════════════ -->
   <joint name="${robot_ns}/caster_front_joint" type="fixed">
     <parent link="${robot_ns}/base_link"/>
@@ -392,7 +394,7 @@
   </gazebo>
 
   <!-- ═══════════════════════════════════════════════════════════════════
-       13. LiDAR  (at sensor-ring height — 0.896 m above ground)
+       14. LiDAR  (at sensor-ring height — 0.896 m above ground)
        ═══════════════════════════════════════════════════════════════════ -->
   <xacro:if value="$(arg laser_enable)">
     <joint name="${robot_ns}/scan_joint" type="fixed">
@@ -444,7 +446,7 @@
   </xacro:if>
 
   <!-- ═══════════════════════════════════════════════════════════════════
-       14. IMU
+       15. IMU
        ═══════════════════════════════════════════════════════════════════ -->
   <xacro:if value="$(arg imu_enable)">
     <joint name="${robot_ns}/imu_joint" type="fixed">
