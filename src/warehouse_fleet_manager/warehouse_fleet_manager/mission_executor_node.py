@@ -354,9 +354,6 @@ class MissionExecutorNode(Node):
             if abs(heading_error) > 1.0:
                 twist.linear.x *= 0.5
 
-            # Obstacle avoidance overrides goal-seeking when path is blocked
-            twist = self._avoid_obstacles(twist)
-
             self._cmd_vel_pub.publish(twist)
 
             progress = max(0.05, min(0.95, 1.0 - dist / start_dist))
