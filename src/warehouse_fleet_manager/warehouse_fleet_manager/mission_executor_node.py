@@ -171,7 +171,11 @@ class MissionExecutorNode(Node):
         self._last_scan = msg
 
     def _avoid_obstacles(self, desired: Twist) -> Twist:
-        """Obstacle avoidance — only brakes at imminent collision (<0.3 m)."""
+        """
+        LiDAR-based obstacle avoidance for the 5× scaled robot.
+        WARN zone  (< 2.5 m): reduce speed + steer toward clear side.
+        DANGER zone (< 1.0 m): near-stop + hard steer.
+        """
         if self._last_scan is None:
             return desired
 
@@ -180,28 +184,44 @@ class MissionExecutorNode(Node):
         if n == 0:
             return desired
 
-        max_r = self._last_scan.range_max or 12.0
+        max_r = self._last_scan.range_max or 15.0
         clean = [r if math.isfinite(r) and r > 0.0 else max_r for r in ranges]
 
-        front = n // 2
-        arc30 = n // 12  # ±30 degrees
+        front  = n // 2
+        arc30  = max(1, n // 12)   # ±30° — forward cone
+        arc90  = max(1, n // 4)    # ±90° — side arcs
 
         front_slice = clean[front - arc30 : front + arc30 + 1]
-        front_min = min(front_slice) if front_slice else max_r
+        front_min   = min(front_slice) if front_slice else max_r
 
-        # Only act at near-collision — don't interfere with normal navigation
-        if front_min >= 0.35:
+        WARN_DIST   = 2.5   # metres — start steering (robot body ≈ 0.525 m radius)
+        DANGER_DIST = 1.0   # metres — near-stop
+
+        if front_min >= WARN_DIST:
             return desired
 
-        # Emergency: steer toward clearer side, keep 60% forward speed
-        left_slice  = clean[front + arc30 : front + arc30 * 4]
-        right_slice = clean[front - arc30 * 4 : front - arc30]
+        left_slice  = clean[front + arc30 : front + arc90]
+        right_slice = clean[front - arc90 : front - arc30]
         left_clear  = sum(left_slice)  / max(1, len(left_slice))
         right_clear = sum(right_slice) / max(1, len(right_slice))
+        turn_dir    = 1.0 if left_clear > right_clear else -1.0
 
         out = Twist()
-        out.linear.x  = desired.linear.x * 0.6
-        out.angular.z = 1.5 if left_clear > right_clear else -1.5
+        if front_min < DANGER_DIST:
+            # Nearly touching — crawl and steer hard
+            out.linear.x  = 0.2
+            out.angular.z = turn_dir * 2.5
+            self.get_logger().warn(
+                f"[{self._robot_id}] DANGER: obstacle {front_min:.2f} m ahead — hard turn"
+            )
+        else:
+            # Warning zone — blend: keep some speed, add corrective steer
+            scale = (front_min - DANGER_DIST) / (WARN_DIST - DANGER_DIST)
+            out.linear.x  = desired.linear.x * (0.3 + 0.5 * scale)
+            out.angular.z = turn_dir * 1.8
+            self.get_logger().info(
+                f"[{self._robot_id}] obstacle {front_min:.2f} m — steering {'left' if turn_dir>0 else 'right'}"
+            )
         return out
 
     def _task_command_callback(self, msg: String) -> None:
@@ -351,6 +371,8 @@ class MissionExecutorNode(Node):
             twist.linear.x = min(MAX_LIN, max(MIN_LIN, dist * 1.2))
             # Steer toward target proportionally
             twist.angular.z = max(-MAX_ANG, min(MAX_ANG, 2.0 * heading_error))
+            # Apply obstacle avoidance — overrides navigation command when obstacle is close
+            twist = self._avoid_obstacles(twist)
 
             self._cmd_vel_pub.publish(twist)
 

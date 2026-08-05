@@ -43,10 +43,10 @@ SHELF_POSITIONS = {
 }
 
 SHELF_DETECTION_RANGE = 6.0   # metres — proximity trigger for shelf detections
-SCAN_MAX_RANGE       = 8.0    # only cluster returns closer than this
-CLUSTER_GAP          = 0.6    # new cluster if consecutive points are > this apart
-CLUSTER_MIN_PTS      = 4      # minimum points to consider a valid cluster
-SHELF_EXCLUSION_DIST = 2.5    # suppress LiDAR clusters that are near known shelves
+SCAN_MAX_RANGE       = 10.0   # only cluster returns closer than this
+CLUSTER_GAP          = 1.0    # new cluster if consecutive points are > this apart (5× world)
+CLUSTER_MIN_PTS      = 2      # minimum points to consider a valid cluster
+SHELF_EXCLUSION_DIST = 3.0    # suppress LiDAR clusters that are near known shelves
 
 
 def robot_ns(robot_id: str) -> str:
@@ -135,6 +135,11 @@ class InspectionDetectorNode(Node):
         for det in detections:
             self._detection_pub.publish(det)
             self._all_detections_pub.publish(det)
+            self.get_logger().info(
+                f"[{self._robot_id}] DETECTED {det.detection_type} '{det.object_id}' "
+                f"at ({det.pose.position.x:.1f}, {det.pose.position.y:.1f}) "
+                f"dist={det.distance:.1f}m conf={det.confidence:.2f}"
+            )
 
     # ── Source 1: proximity-based shelf detection ────────────────────────────
 
