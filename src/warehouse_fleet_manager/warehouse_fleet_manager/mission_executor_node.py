@@ -171,11 +171,7 @@ class MissionExecutorNode(Node):
         self._last_scan = msg
 
     def _avoid_obstacles(self, desired: Twist) -> Twist:
-        """
-        Blend desired velocity with reactive obstacle avoidance.
-        Uses the 360° laser scan: if anything is within WARN_DIST ahead,
-        slow down and steer toward the clearer side.
-        """
+        """Obstacle avoidance — only brakes at imminent collision (<0.3 m)."""
         if self._last_scan is None:
             return desired
 
@@ -187,41 +183,25 @@ class MissionExecutorNode(Node):
         max_r = self._last_scan.range_max or 12.0
         clean = [r if math.isfinite(r) and r > 0.0 else max_r for r in ranges]
 
-        # With min_angle=-π and 360 samples, index n//2 ≈ forward direction
         front = n // 2
-        arc45 = n // 8  # 45 degrees worth of indices
+        arc30 = n // 12  # ±30 degrees
 
-        # Minimum distance in ±45° forward arc
-        front_slice = clean[front - arc45 : front + arc45 + 1]
+        front_slice = clean[front - arc30 : front + arc30 + 1]
         front_min = min(front_slice) if front_slice else max_r
 
-        WARN_DIST = 1.0   # begin slowing — shelves exist at ~2-4m so use tight threshold
-        DODGE_DIST = 0.4  # hard steer only at near-collision
-
-        if front_min >= WARN_DIST:
+        # Only act at near-collision — don't interfere with normal navigation
+        if front_min >= 0.35:
             return desired
 
-        # Left sector (indices front+arc45 → front+3*arc45)
-        left_slice  = clean[front + arc45 : front + arc45 * 3]
-        # Right sector (indices front-3*arc45 → front-arc45)
-        right_slice = clean[front - arc45 * 3 : front - arc45]
-
-        left_clear  = sum(left_slice)  / len(left_slice)  if left_slice  else 0.0
-        right_clear = sum(right_slice) / len(right_slice) if right_slice else 0.0
+        # Emergency: steer toward clearer side, keep 60% forward speed
+        left_slice  = clean[front + arc30 : front + arc30 * 4]
+        right_slice = clean[front - arc30 * 4 : front - arc30]
+        left_clear  = sum(left_slice)  / max(1, len(left_slice))
+        right_clear = sum(right_slice) / max(1, len(right_slice))
 
         out = Twist()
-        # Keep at least 40% forward speed so robot never stalls
-        speed_factor = max(0.4, (front_min - DODGE_DIST) / (WARN_DIST - DODGE_DIST))
-        out.linear.x = desired.linear.x * speed_factor
-
-        if front_min < DODGE_DIST:
-            # Hard steer toward the clearer side
-            out.angular.z = 2.0 if left_clear > right_clear else -2.0
-        else:
-            # Gentle blend with goal-seeking steer
-            dodge = 1.0 if left_clear > right_clear else -1.0
-            out.angular.z = desired.angular.z * 0.5 + dodge * 0.5
-
+        out.linear.x  = desired.linear.x * 0.6
+        out.angular.z = 1.5 if left_clear > right_clear else -1.5
         return out
 
     def _task_command_callback(self, msg: String) -> None:
