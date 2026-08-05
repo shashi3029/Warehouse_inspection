@@ -318,9 +318,9 @@ class MissionExecutorNode(Node):
         Robot steers AND drives simultaneously — no stop-to-turn phase.
         Falls back to time-based dead reckoning if odom never arrives.
         """
-        ARRIVAL_DIST = 0.5
-        MAX_LIN = 1.5
-        MAX_ANG = 2.84
+        ARRIVAL_DIST = 0.8
+        MAX_LIN = 2.0
+        MAX_ANG = 2.5
         RATE = 0.05  # 20 Hz
 
         start_dist = max(0.1, self._dist_to(x, y))

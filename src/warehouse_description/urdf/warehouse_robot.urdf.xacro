@@ -1,7 +1,6 @@
 <?xml version="1.0"?>
 <robot name="warehouse_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-  <!-- Args — identical to original for launch-file compatibility -->
   <xacro:arg name="robot_name"    default="robot1"/>
   <xacro:arg name="robot_id"      default="Robot_1"/>
   <xacro:arg name="laser_enable"  default="true"/>
@@ -10,30 +9,45 @@
 
   <xacro:property name="robot_ns" value="$(arg robot_name)"/>
 
-  <!-- ═══════════════════════════════════════════════════════════════════
-       TurtleBot3 Burger dimensions
-       spawn height z = 0.033 m  (= wheel_radius)
-       base_link frame origin  = wheel axle height
-       ground plane at         = z − 0.033 m in base_link frame
-       ═══════════════════════════════════════════════════════════════════ -->
-  <xacro:property name="base_mass"      value="1.0"/>
-  <xacro:property name="wheel_radius"   value="0.033"/>
-  <xacro:property name="wheel_width"    value="0.018"/>
-  <xacro:property name="wheel_sep_half" value="0.080"/>   <!-- 0.160 m / 2 -->
-  <xacro:property name="caster_radius"  value="0.010"/>
+  <!-- ══════════════════════════════════════════════════════════════
+       5× TurtleBot3 Burger — every dimension is 5× real TB3 Burger
+       spawn_z = 0.170 m (≈ wheel_radius 0.165 m + 5 mm buffer)
+       base_link origin = wheel axle height above ground
+       ground in base_link frame  =  z − 0.170
+       ══════════════════════════════════════════════════════════════ -->
 
-  <!-- Positions in base_link frame (ground = −0.033) -->
-  <!-- bottom plate centre: 0.010 m above ground → −0.033+0.010+0.0035 = −0.0195 -->
-  <xacro:property name="bottom_plate_z" value="-0.020"/>
-  <!-- top plate centre: 0.190 m above ground → −0.033+0.190+0.0035 = 0.1605 -->
-  <xacro:property name="top_plate_z"    value="0.161"/>
-  <!-- standoff centre (midpoint between plates) -->
-  <xacro:property name="standoff_z"     value="0.071"/>
-  <xacro:property name="standoff_len"   value="0.174"/>
-  <!-- lidar base just above top plate -->
-  <xacro:property name="lidar_z"        value="0.185"/>
-  <!-- casters: bottom touches ground → centre at −0.033+caster_radius -->
-  <xacro:property name="caster_z"       value="-0.023"/>
+  <!-- Physical properties -->
+  <xacro:property name="base_mass"       value="8.0"/>
+  <xacro:property name="wheel_mass"      value="0.200"/>
+  <xacro:property name="wheel_radius"    value="0.165"/>   <!-- 5 × 0.033 -->
+  <xacro:property name="wheel_width"     value="0.090"/>   <!-- 5 × 0.018 -->
+  <xacro:property name="wheel_sep_half"  value="0.400"/>   <!-- 5 × 0.080 -->
+  <xacro:property name="caster_radius"   value="0.050"/>   <!-- 5 × 0.010 -->
+  <xacro:property name="plate_r"         value="0.525"/>   <!-- 5 × 0.105 -->
+  <xacro:property name="plate_h"         value="0.035"/>   <!-- 5 × 0.007 -->
+  <xacro:property name="standoff_r"      value="0.055"/>   <!-- 5 × 0.011 -->
+  <xacro:property name="standoff_xy"     value="0.275"/>   <!-- 5 × 0.055 -->
+
+  <!-- z-centres in base_link frame  (ground = −0.170) -->
+  <!-- TB3 heights above ground × 5: bottom≈0.060, mid≈0.475, top≈0.890  -->
+  <xacro:property name="bot_plate_z"    value="-0.110"/>   <!-- 0.060 m above ground -->
+  <xacro:property name="mid_plate_z"    value=" 0.305"/>   <!-- 0.475 m above ground -->
+  <xacro:property name="top_plate_z"    value=" 0.720"/>   <!-- 0.890 m above ground -->
+
+  <!-- standoffs span from top face of bottom plate to bottom face of top plate -->
+  <!-- len = (top_plate_z − plate_h/2) − (bot_plate_z + plate_h/2) = 0.795    -->
+  <xacro:property name="standoff_len"   value="0.795"/>
+  <xacro:property name="standoff_z"     value="0.305"/>    <!-- midpoint = mid plate -->
+
+  <!-- LiDAR housing: just above top plate                                      -->
+  <!-- housing_h = 0.175,  lidar_z = top_plate_z + plate_h/2 + housing_h/2     -->
+  <!--           = 0.720 + 0.0175 + 0.0875 = 0.825                              -->
+  <xacro:property name="lidar_z"        value="0.825"/>
+  <xacro:property name="lidar_h"        value="0.175"/>
+  <xacro:property name="lidar_r"        value="0.190"/>
+
+  <!-- casters: centre at ground + caster_radius = −0.170 + 0.050 = −0.120     -->
+  <xacro:property name="caster_z"       value="-0.120"/>
 
   <!-- Helper: fixed joint -->
   <xacro:macro name="fixed_joint" params="name parent child ox oy oz">
@@ -52,40 +66,60 @@
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </joint>
 
-  <!-- ═══════════════════════════════════════════════════════════════════
-       1. BASE LINK — bottom circular plate + physics
-       ═══════════════════════════════════════════════════════════════════ -->
+  <!-- ══════════════════════════════════════════════════════════════
+       1. BASE LINK  —  bottom plate  +  physics / collision
+       ══════════════════════════════════════════════════════════════ -->
   <link name="${robot_ns}/base_link">
     <visual>
-      <origin xyz="0 0 ${bottom_plate_z}" rpy="0 0 0"/>
-      <geometry><cylinder length="0.007" radius="0.105"/></geometry>
+      <origin xyz="0 0 ${bot_plate_z}" rpy="0 0 0"/>
+      <geometry><cylinder length="${plate_h}" radius="${plate_r}"/></geometry>
     </visual>
+    <!-- Collision covers full body height so robot doesn't clip shelves -->
     <collision>
-      <!-- Flat cylinder collision to keep robot on ground -->
-      <origin xyz="0 0 ${bottom_plate_z}" rpy="0 0 0"/>
-      <geometry><cylinder length="0.100" radius="0.105"/></geometry>
+      <origin xyz="0 0 0.305" rpy="0 0 0"/>
+      <geometry><cylinder length="0.870" radius="${plate_r}"/></geometry>
     </collision>
     <inertial>
-      <origin xyz="0 0 ${bottom_plate_z}" rpy="0 0 0"/>
+      <!-- CoM at mid-body height for stability -->
+      <origin xyz="0 0 0.305" rpy="0 0 0"/>
       <mass value="${base_mass}"/>
-      <!-- Thin cylinder: Ixx=Iyy=m(3r²+h²)/12, Izz=mr²/2 -->
-      <inertia ixx="0.00277" iyy="0.00277" izz="0.00551"
+      <!-- solid cylinder r=0.525, h=0.870: Ixx=Iyy≈1.033, Izz≈1.103 -->
+      <inertia ixx="1.033" iyy="1.033" izz="1.103"
                ixy="0" ixz="0" iyz="0"/>
     </inertial>
   </link>
   <gazebo reference="${robot_ns}/base_link">
-    <material>Gazebo/DarkGrey</material>
+    <material>Gazebo/Black</material>
   </gazebo>
 
-  <!-- ═══════════════════════════════════════════════════════════════════
-       2. TOP PLATE — second circular plate
-       ═══════════════════════════════════════════════════════════════════ -->
+  <!-- ══════════════════════════════════════════════════════════════
+       2. MIDDLE PLATE
+       ══════════════════════════════════════════════════════════════ -->
+  <xacro:fixed_joint name="mid_plate_jnt" parent="base_link" child="mid_plate_link"
+                     ox="0" oy="0" oz="0"/>
+  <link name="${robot_ns}/mid_plate_link">
+    <visual>
+      <origin xyz="0 0 ${mid_plate_z}" rpy="0 0 0"/>
+      <geometry><cylinder length="${plate_h}" radius="${plate_r}"/></geometry>
+    </visual>
+    <inertial>
+      <mass value="0.001"/>
+      <inertia ixx="1e-9" iyy="1e-9" izz="1e-9" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+  <gazebo reference="${robot_ns}/mid_plate_link">
+    <material>Gazebo/Black</material>
+  </gazebo>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       3. TOP PLATE
+       ══════════════════════════════════════════════════════════════ -->
   <xacro:fixed_joint name="top_plate_jnt" parent="base_link" child="top_plate_link"
                      ox="0" oy="0" oz="0"/>
   <link name="${robot_ns}/top_plate_link">
     <visual>
       <origin xyz="0 0 ${top_plate_z}" rpy="0 0 0"/>
-      <geometry><cylinder length="0.007" radius="0.105"/></geometry>
+      <geometry><cylinder length="${plate_h}" radius="${plate_r}"/></geometry>
     </visual>
     <inertial>
       <mass value="0.001"/>
@@ -93,18 +127,18 @@
     </inertial>
   </link>
   <gazebo reference="${robot_ns}/top_plate_link">
-    <material>Gazebo/DarkGrey</material>
+    <material>Gazebo/Black</material>
   </gazebo>
 
-  <!-- ═══════════════════════════════════════════════════════════════════
-       3–6. STANDOFF POLES (front-left, front-right, rear-left, rear-right)
-       ═══════════════════════════════════════════════════════════════════ -->
+  <!-- ══════════════════════════════════════════════════════════════
+       4–7. STANDOFF POLES — white aluminium posts
+       ══════════════════════════════════════════════════════════════ -->
   <xacro:fixed_joint name="standoff_fl_jnt" parent="base_link" child="standoff_fl_link"
-                     ox="0.055" oy="0.055" oz="${standoff_z}"/>
+                     ox="${standoff_xy}" oy="${standoff_xy}" oz="${standoff_z}"/>
   <link name="${robot_ns}/standoff_fl_link">
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
-      <geometry><cylinder length="${standoff_len}" radius="0.011"/></geometry>
+      <geometry><cylinder length="${standoff_len}" radius="${standoff_r}"/></geometry>
     </visual>
     <inertial>
       <mass value="0.001"/>
@@ -112,15 +146,15 @@
     </inertial>
   </link>
   <gazebo reference="${robot_ns}/standoff_fl_link">
-    <material>Gazebo/DarkGrey</material>
+    <material>Gazebo/White</material>
   </gazebo>
 
   <xacro:fixed_joint name="standoff_fr_jnt" parent="base_link" child="standoff_fr_link"
-                     ox="0.055" oy="-0.055" oz="${standoff_z}"/>
+                     ox="${standoff_xy}" oy="-${standoff_xy}" oz="${standoff_z}"/>
   <link name="${robot_ns}/standoff_fr_link">
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
-      <geometry><cylinder length="${standoff_len}" radius="0.011"/></geometry>
+      <geometry><cylinder length="${standoff_len}" radius="${standoff_r}"/></geometry>
     </visual>
     <inertial>
       <mass value="0.001"/>
@@ -128,15 +162,15 @@
     </inertial>
   </link>
   <gazebo reference="${robot_ns}/standoff_fr_link">
-    <material>Gazebo/DarkGrey</material>
+    <material>Gazebo/White</material>
   </gazebo>
 
   <xacro:fixed_joint name="standoff_rl_jnt" parent="base_link" child="standoff_rl_link"
-                     ox="-0.055" oy="0.055" oz="${standoff_z}"/>
+                     ox="-${standoff_xy}" oy="${standoff_xy}" oz="${standoff_z}"/>
   <link name="${robot_ns}/standoff_rl_link">
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
-      <geometry><cylinder length="${standoff_len}" radius="0.011"/></geometry>
+      <geometry><cylinder length="${standoff_len}" radius="${standoff_r}"/></geometry>
     </visual>
     <inertial>
       <mass value="0.001"/>
@@ -144,15 +178,15 @@
     </inertial>
   </link>
   <gazebo reference="${robot_ns}/standoff_rl_link">
-    <material>Gazebo/DarkGrey</material>
+    <material>Gazebo/White</material>
   </gazebo>
 
   <xacro:fixed_joint name="standoff_rr_jnt" parent="base_link" child="standoff_rr_link"
-                     ox="-0.055" oy="-0.055" oz="${standoff_z}"/>
+                     ox="-${standoff_xy}" oy="-${standoff_xy}" oz="${standoff_z}"/>
   <link name="${robot_ns}/standoff_rr_link">
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
-      <geometry><cylinder length="${standoff_len}" radius="0.011"/></geometry>
+      <geometry><cylinder length="${standoff_len}" radius="${standoff_r}"/></geometry>
     </visual>
     <inertial>
       <mass value="0.001"/>
@@ -160,18 +194,24 @@
     </inertial>
   </link>
   <gazebo reference="${robot_ns}/standoff_rr_link">
-    <material>Gazebo/DarkGrey</material>
+    <material>Gazebo/White</material>
   </gazebo>
 
-  <!-- ═══════════════════════════════════════════════════════════════════
-       7. LiDAR HOUSING — dark cylinder on top plate
-       ═══════════════════════════════════════════════════════════════════ -->
+  <!-- ══════════════════════════════════════════════════════════════
+       8. LiDAR HOUSING — grey cylinder + dome on top plate
+       ══════════════════════════════════════════════════════════════ -->
   <xacro:fixed_joint name="lidar_housing_jnt" parent="base_link" child="lidar_housing_link"
                      ox="0" oy="0" oz="${lidar_z}"/>
   <link name="${robot_ns}/lidar_housing_link">
+    <!-- main cylinder body -->
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
-      <geometry><cylinder length="0.035" radius="0.038"/></geometry>
+      <geometry><cylinder length="${lidar_h}" radius="${lidar_r}"/></geometry>
+    </visual>
+    <!-- dome cap -->
+    <visual>
+      <origin xyz="0 0 0.120" rpy="0 0 0"/>
+      <geometry><sphere radius="0.140"/></geometry>
     </visual>
     <inertial>
       <mass value="0.001"/>
@@ -179,12 +219,13 @@
     </inertial>
   </link>
   <gazebo reference="${robot_ns}/lidar_housing_link">
-    <material>Gazebo/Black</material>
+    <material>Gazebo/Grey</material>
   </gazebo>
 
-  <!-- ═══════════════════════════════════════════════════════════════════
-       8 & 9. DRIVE WHEELS (left + right)
-       ═══════════════════════════════════════════════════════════════════ -->
+  <!-- ══════════════════════════════════════════════════════════════
+       9 & 10. DRIVE WHEELS  (left + right)
+       rpy="-π/2 0 0" rotates wheel cylinder axis onto global Y
+       ══════════════════════════════════════════════════════════════ -->
   <joint name="${robot_ns}/wheel_left_joint" type="continuous">
     <parent link="${robot_ns}/base_link"/>
     <child  link="${robot_ns}/wheel_left_link"/>
@@ -201,8 +242,9 @@
       <geometry><cylinder length="${wheel_width}" radius="${wheel_radius}"/></geometry>
     </collision>
     <inertial>
-      <mass value="0.028"/>
-      <inertia ixx="0.000008" iyy="0.000008" izz="0.000015"
+      <mass value="${wheel_mass}"/>
+      <!-- cylinder spinning about Z: Ixx=Iyy=m(3r²+h²)/12, Izz=mr²/2 -->
+      <inertia ixx="0.00150" iyy="0.00150" izz="0.00272"
                ixy="0" ixz="0" iyz="0"/>
     </inertial>
   </link>
@@ -228,8 +270,8 @@
       <geometry><cylinder length="${wheel_width}" radius="${wheel_radius}"/></geometry>
     </collision>
     <inertial>
-      <mass value="0.028"/>
-      <inertia ixx="0.000008" iyy="0.000008" izz="0.000015"
+      <mass value="${wheel_mass}"/>
+      <inertia ixx="0.00150" iyy="0.00150" izz="0.00272"
                ixy="0" ixz="0" iyz="0"/>
     </inertial>
   </link>
@@ -239,24 +281,24 @@
     <mu2>1.0</mu2>
   </gazebo>
 
-  <!-- ═══════════════════════════════════════════════════════════════════
-       10 & 11. CASTER BALLS (front + rear) — low friction
-       ═══════════════════════════════════════════════════════════════════ -->
+  <!-- ══════════════════════════════════════════════════════════════
+       11 & 12. CASTER BALLS  (front + rear)  — zero friction
+       ══════════════════════════════════════════════════════════════ -->
   <joint name="${robot_ns}/caster_front_joint" type="fixed">
     <parent link="${robot_ns}/base_link"/>
     <child  link="${robot_ns}/caster_front_link"/>
-    <origin xyz="0.060 0.0 ${caster_z}" rpy="0 0 0"/>
+    <origin xyz="0.300 0.0 ${caster_z}" rpy="0 0 0"/>
   </joint>
   <link name="${robot_ns}/caster_front_link">
     <visual><geometry><sphere radius="${caster_radius}"/></geometry></visual>
     <collision><geometry><sphere radius="${caster_radius}"/></geometry></collision>
     <inertial>
-      <mass value="0.005"/>
-      <inertia ixx="2e-7" iyy="2e-7" izz="2e-7" ixy="0" ixz="0" iyz="0"/>
+      <mass value="0.010"/>
+      <inertia ixx="4e-7" iyy="4e-7" izz="4e-7" ixy="0" ixz="0" iyz="0"/>
     </inertial>
   </link>
   <gazebo reference="${robot_ns}/caster_front_link">
-    <material>Gazebo/Grey</material>
+    <material>Gazebo/DarkGrey</material>
     <mu1>0.0</mu1>
     <mu2>0.0</mu2>
   </gazebo>
@@ -264,25 +306,25 @@
   <joint name="${robot_ns}/caster_rear_joint" type="fixed">
     <parent link="${robot_ns}/base_link"/>
     <child  link="${robot_ns}/caster_rear_link"/>
-    <origin xyz="-0.060 0.0 ${caster_z}" rpy="0 0 0"/>
+    <origin xyz="-0.300 0.0 ${caster_z}" rpy="0 0 0"/>
   </joint>
   <link name="${robot_ns}/caster_rear_link">
     <visual><geometry><sphere radius="${caster_radius}"/></geometry></visual>
     <collision><geometry><sphere radius="${caster_radius}"/></geometry></collision>
     <inertial>
-      <mass value="0.005"/>
-      <inertia ixx="2e-7" iyy="2e-7" izz="2e-7" ixy="0" ixz="0" iyz="0"/>
+      <mass value="0.010"/>
+      <inertia ixx="4e-7" iyy="4e-7" izz="4e-7" ixy="0" ixz="0" iyz="0"/>
     </inertial>
   </link>
   <gazebo reference="${robot_ns}/caster_rear_link">
-    <material>Gazebo/Grey</material>
+    <material>Gazebo/DarkGrey</material>
     <mu1>0.0</mu1>
     <mu2>0.0</mu2>
   </gazebo>
 
-  <!-- ═══════════════════════════════════════════════════════════════════
-       12. LiDAR SENSOR
-       ═══════════════════════════════════════════════════════════════════ -->
+  <!-- ══════════════════════════════════════════════════════════════
+       13. LiDAR SENSOR — positioned at top of housing
+       ══════════════════════════════════════════════════════════════ -->
   <xacro:if value="$(arg laser_enable)">
     <joint name="${robot_ns}/scan_joint" type="fixed">
       <parent link="${robot_ns}/base_link"/>
@@ -310,8 +352,8 @@
             </horizontal>
           </scan>
           <range>
-            <min>0.12</min>
-            <max>3.5</max>
+            <min>0.20</min>
+            <max>15.0</max>
             <resolution>0.015</resolution>
           </range>
           <noise>
@@ -332,9 +374,9 @@
     </gazebo>
   </xacro:if>
 
-  <!-- ═══════════════════════════════════════════════════════════════════
-       13. IMU
-       ═══════════════════════════════════════════════════════════════════ -->
+  <!-- ══════════════════════════════════════════════════════════════
+       14. IMU
+       ══════════════════════════════════════════════════════════════ -->
   <xacro:if value="$(arg imu_enable)">
     <joint name="${robot_ns}/imu_joint" type="fixed">
       <parent link="${robot_ns}/base_link"/>
@@ -349,10 +391,11 @@
     </link>
   </xacro:if>
 
-  <!-- ═══════════════════════════════════════════════════════════════════
-       DIFFERENTIAL DRIVE PLUGIN — TurtleBot3 Burger parameters
-       wheel_sep=0.160 m, wheel_diam=0.066 m
-       ═══════════════════════════════════════════════════════════════════ -->
+  <!-- ══════════════════════════════════════════════════════════════
+       DIFFERENTIAL DRIVE PLUGIN
+       5× TB3 Burger: sep=0.800 m, diam=0.330 m
+       torque=20 Nm, accel=30 rad/s² → linear accel ≈ 5 m/s²
+       ══════════════════════════════════════════════════════════════ -->
   <gazebo>
     <plugin name="${robot_ns}_diff_drive" filename="libgazebo_ros_diff_drive.so">
       <ros>
@@ -360,10 +403,10 @@
       </ros>
       <left_joint>${robot_ns}/wheel_left_joint</left_joint>
       <right_joint>${robot_ns}/wheel_right_joint</right_joint>
-      <wheel_separation>0.160</wheel_separation>
-      <wheel_diameter>0.066</wheel_diameter>
-      <max_wheel_torque>5</max_wheel_torque>
-      <max_wheel_acceleration>50.0</max_wheel_acceleration>
+      <wheel_separation>0.800</wheel_separation>
+      <wheel_diameter>0.330</wheel_diameter>
+      <max_wheel_torque>20</max_wheel_torque>
+      <max_wheel_acceleration>30.0</max_wheel_acceleration>
       <command_topic>cmd_vel</command_topic>
       <publish_odom>true</publish_odom>
       <publish_odom_tf>true</publish_odom_tf>
