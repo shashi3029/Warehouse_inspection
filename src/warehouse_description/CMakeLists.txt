@@ -3,7 +3,7 @@ project(warehouse_description)
 
 find_package(ament_cmake REQUIRED)
 
-install(DIRECTORY urdf rviz
+install(DIRECTORY urdf rviz meshes
   DESTINATION share/${PROJECT_NAME}
 )
 

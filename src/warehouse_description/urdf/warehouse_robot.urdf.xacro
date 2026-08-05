@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <robot name="warehouse_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-  <!-- Args — identical to original for full launch-file compatibility -->
+  <!-- Args — kept identical for full launch-file compatibility -->
   <xacro:arg name="robot_name"    default="robot1"/>
   <xacro:arg name="robot_id"      default="Robot_1"/>
   <xacro:arg name="laser_enable"  default="true"/>
@@ -11,39 +11,21 @@
   <xacro:property name="robot_ns" value="$(arg robot_name)"/>
 
   <!-- ═══════════════════════════════════════════════════════════════════
-       PHYSICS DIMENSIONS
-       Spawn height z=0.175  (= wheel_radius 0.170 + |wheel_offset_z| 0.005)
-       Ground plane is at base_link z = -0.175
+       PHYSICS (spawn height z=0.175 = wheel_radius 0.170 + offset 0.005)
+       All visuals use package://warehouse_description/meshes/*.stl
+       which are installed by CMakeLists to share/warehouse_description/meshes/
        ═══════════════════════════════════════════════════════════════════ -->
-  <xacro:property name="base_mass"        value="60.0"/>
-  <xacro:property name="wheel_radius"     value="0.170"/>
-  <xacro:property name="wheel_width"      value="0.080"/>
-  <xacro:property name="wheel_sep_half"   value="0.290"/>   <!-- 0.580 m axle / 2 -->
-  <xacro:property name="wheel_offset_z"   value="-0.005"/>
-  <xacro:property name="caster_radius"    value="0.050"/>
-  <!-- caster_offset_z = caster_radius - spawn_z = 0.050 - 0.175 = -0.125 -->
-  <xacro:property name="caster_offset_z"  value="-0.125"/>
-  <xacro:property name="caster_front_x"   value=" 0.390"/>
-  <xacro:property name="caster_rear_x"    value="-0.390"/>
-
-  <!-- ═══════════════════════════════════════════════════════════════════
-       VISUAL DIMENSIONS
-       Body bottom sits 20 mm above ground.
-         body_bottom_base = -0.175 + 0.020 = -0.155
-         body center (body_z) = -0.155 + body_h/2 = -0.155 + 0.200 = 0.045
-       ═══════════════════════════════════════════════════════════════════ -->
-  <xacro:property name="body_l"   value="0.900"/>
-  <xacro:property name="body_w"   value="0.650"/>
-  <xacro:property name="body_h"   value="0.400"/>
-  <xacro:property name="body_z"   value="0.045"/>    <!-- body centroid in base_link -->
-  <!-- Pre-computed constants (avoid complex xacro expressions) -->
-  <!-- body_top    = body_z + body_h/2     = 0.245  -->
-  <!-- lid_center  = body_top + 0.013      = 0.258  -->
-  <!-- lid_top     = lid_center + 0.013    = 0.271  -->
-  <!-- mast_center = lid_top + 0.450       = 0.721  -->
-  <!-- mast_top    = lid_top + 0.900       = 1.171  -->
-  <!-- beacon_ctr  = mast_top + 0.110      = 1.281  -->
-  <!-- sphere_ctr  = beacon_ctr + 0.195    = 1.476  -->
+  <xacro:property name="base_mass"       value="60.0"/>
+  <xacro:property name="wheel_radius"    value="0.170"/>
+  <xacro:property name="wheel_width"     value="0.080"/>
+  <xacro:property name="wheel_sep_half"  value="0.290"/>
+  <xacro:property name="wheel_offset_z"  value="-0.005"/>
+  <xacro:property name="caster_radius"   value="0.050"/>
+  <xacro:property name="caster_z"        value="-0.125"/>
+  <xacro:property name="caster_front_x"  value=" 0.390"/>
+  <xacro:property name="caster_rear_x"   value="-0.390"/>
+  <xacro:property name="body_z"          value="0.045"/>
+  <xacro:property name="body_h"          value="0.400"/>
 
   <!-- ── base footprint ── -->
   <link name="${robot_ns}/base_footprint"/>
@@ -55,111 +37,96 @@
   </joint>
 
   <!-- ═══════════════════════════════════════════════════════════════════
-       BASE LINK — Industrial Warehouse AMR body
-       Orange/black colour scheme, realistic proportions.
+       BASE LINK — mesh-based industrial warehouse AMR
+       Each visual uses a separate STL so Gazebo can colour them
+       independently via material overrides.
        ═══════════════════════════════════════════════════════════════════ -->
   <link name="${robot_ns}/base_link">
 
-    <!-- ── Main orange body box ── -->
-    <visual>
-      <origin xyz="0 0 ${body_z}" rpy="0 0 0"/>
-      <geometry><box size="${body_l} ${body_w} ${body_h}"/></geometry>
+    <!-- ── Main orange body ── -->
+    <visual name="body">
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://warehouse_description/meshes/amr_body.stl"/>
+      </geometry>
       <material name="amr_orange"><color rgba="1.00 0.55 0.00 1.0"/></material>
     </visual>
 
-    <!-- ── Top dark lid plate (proud of body by 5mm per side) ── -->
-    <visual>
-      <origin xyz="0 0 0.258" rpy="0 0 0"/>
-      <geometry><box size="0.920 0.670 0.026"/></geometry>
+    <!-- ── Dark lid plate ── -->
+    <visual name="lid">
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://warehouse_description/meshes/amr_lid.stl"/>
+      </geometry>
       <material name="amr_charcoal"><color rgba="0.14 0.14 0.14 1.0"/></material>
     </visual>
 
-    <!-- ── Front bumper / sensor bar ── -->
-    <visual>
-      <origin xyz="0.480 0 -0.025" rpy="0 0 0"/>
-      <geometry><box size="0.062 0.720 0.260"/></geometry>
+    <!-- ── Front bumper ── -->
+    <visual name="bumper_front">
+      <origin xyz="0.480 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://warehouse_description/meshes/amr_bumper_front.stl"/>
+      </geometry>
       <material name="amr_charcoal"/>
-    </visual>
-    <!-- Front safety yellow stripe on bumper -->
-    <visual>
-      <origin xyz="0.480 0 0.085" rpy="0 0 0"/>
-      <geometry><box size="0.064 0.722 0.040"/></geometry>
-      <material name="amr_orange"/>
     </visual>
 
     <!-- ── Rear bumper ── -->
-    <visual>
-      <origin xyz="-0.480 0 -0.025" rpy="0 0 0"/>
-      <geometry><box size="0.062 0.720 0.260"/></geometry>
+    <visual name="bumper_rear">
+      <origin xyz="-0.480 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://warehouse_description/meshes/amr_bumper_rear.stl"/>
+      </geometry>
       <material name="amr_charcoal"/>
     </visual>
-    <!-- Rear yellow stripe -->
-    <visual>
-      <origin xyz="-0.480 0 0.085" rpy="0 0 0"/>
-      <geometry><box size="0.064 0.722 0.040"/></geometry>
+
+    <!-- ── Central identification mast (tapered frustum) ── -->
+    <visual name="mast">
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://warehouse_description/meshes/amr_mast.stl"/>
+      </geometry>
       <material name="amr_orange"/>
     </visual>
 
-    <!-- ── Left side dark accent panel ── -->
-    <visual>
-      <origin xyz="0 0.335 ${body_z}" rpy="0 0 0"/>
-      <geometry><box size="${body_l} 0.022 ${body_h}"/></geometry>
-      <material name="amr_charcoal"/>
-    </visual>
-    <!-- ── Right side dark accent panel ── -->
-    <visual>
-      <origin xyz="0 -0.335 ${body_z}" rpy="0 0 0"/>
-      <geometry><box size="${body_l} 0.022 ${body_h}"/></geometry>
-      <material name="amr_charcoal"/>
+    <!-- ── 360° sensor ring (torus) ── -->
+    <visual name="sensor_ring">
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://warehouse_description/meshes/amr_sensor_ring.stl"/>
+      </geometry>
+      <material name="amr_sensor"><color rgba="0.30 0.30 0.30 1.0"/></material>
     </visual>
 
-    <!-- ── Central mast pole ── -->
-    <visual>
-      <origin xyz="0 0 0.721" rpy="0 0 0"/>
-      <geometry><cylinder length="0.900" radius="0.055"/></geometry>
-      <material name="amr_orange"/>
+    <!-- ── Safety beacon cylinder ── -->
+    <visual name="beacon_body">
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://warehouse_description/meshes/amr_beacon.stl"/>
+      </geometry>
+      <material name="amr_blue"><color rgba="0.10 0.45 1.00 1.0"/></material>
     </visual>
 
-    <!-- ── 360° sensor housing ring at mid-mast ── -->
-    <visual>
-      <origin xyz="0 0 0.721" rpy="0 0 0"/>
-      <geometry><cylinder length="0.115" radius="0.135"/></geometry>
-      <material name="amr_sensor"><color rgba="0.28 0.28 0.28 1.0"/></material>
-    </visual>
-    <!-- sensor window ring (lighter) -->
-    <visual>
-      <origin xyz="0 0 0.721" rpy="0 0 0"/>
-      <geometry><cylinder length="0.040" radius="0.145"/></geometry>
-      <material name="amr_glass"><color rgba="0.20 0.55 0.90 0.75"/></material>
-    </visual>
-
-    <!-- ── Safety beacon cylinder (blue) ── -->
-    <visual>
-      <origin xyz="0 0 1.281" rpy="0 0 0"/>
-      <geometry><cylinder length="0.200" radius="0.068"/></geometry>
-      <material name="amr_blue"><color rgba="0.10 0.40 1.00 1.0"/></material>
-    </visual>
-    <!-- ── Safety beacon dome (bright blue) ── -->
-    <visual>
-      <origin xyz="0 0 1.476" rpy="0 0 0"/>
-      <geometry><sphere radius="0.090"/></geometry>
+    <!-- ── Safety beacon dome ── -->
+    <visual name="beacon_dome">
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://warehouse_description/meshes/amr_dome.stl"/>
+      </geometry>
       <material name="amr_blue"/>
     </visual>
 
-    <!-- ── Physical collision box (body only — mast excluded from collision) ── -->
+    <!-- ── Physical collision — full body box ── -->
     <collision>
       <origin xyz="0 0 ${body_z}" rpy="0 0 0"/>
       <geometry><box size="0.960 0.660 ${body_h}"/></geometry>
     </collision>
 
     <inertial>
-      <!-- CG at body centre: z=body_z=0.045 for a naturally low centre of mass -->
       <origin xyz="0 0 ${body_z}" rpy="0 0 0"/>
       <mass value="${base_mass}"/>
-      <!-- Solid box inertia: m=60, l=0.9, w=0.65, h=0.4 -->
-      <inertia
-        ixx="2.913" iyy="4.850" izz="6.163"
-        ixy="0" ixz="0" iyz="0"/>
+      <!-- Solid box m=60, l=0.9, w=0.65, h=0.4 -->
+      <inertia ixx="2.913" iyy="4.850" izz="6.163"
+               ixy="0" ixz="0" iyz="0"/>
     </inertial>
   </link>
 
@@ -171,21 +138,18 @@
     <axis   xyz="0 0 1"/>
   </joint>
   <link name="${robot_ns}/wheel_left_link">
-    <!-- Tyre -->
-    <visual>
+    <visual name="wheel">
       <origin xyz="0 0 0" rpy="0 0 0"/>
-      <geometry><cylinder length="${wheel_width}" radius="${wheel_radius}"/></geometry>
-      <material name="amr_tyre"><color rgba="0.07 0.07 0.07 1.0"/></material>
-    </visual>
-    <!-- Hub cap -->
-    <visual>
-      <origin xyz="0 0 0.045" rpy="0 0 0"/>
-      <geometry><cylinder length="0.015" radius="0.093"/></geometry>
-      <material name="amr_silver"><color rgba="0.60 0.60 0.60 1.0"/></material>
+      <geometry>
+        <mesh filename="package://warehouse_description/meshes/amr_wheel.stl"/>
+      </geometry>
+      <material name="amr_tyre"><color rgba="0.08 0.08 0.08 1.0"/></material>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0"/>
-      <geometry><cylinder length="${wheel_width}" radius="${wheel_radius}"/></geometry>
+      <geometry>
+        <cylinder length="${wheel_width}" radius="${wheel_radius}"/>
+      </geometry>
     </collision>
     <inertial>
       <mass value="0.800"/>
@@ -202,19 +166,18 @@
     <axis   xyz="0 0 1"/>
   </joint>
   <link name="${robot_ns}/wheel_right_link">
-    <visual>
+    <visual name="wheel">
       <origin xyz="0 0 0" rpy="0 0 0"/>
-      <geometry><cylinder length="${wheel_width}" radius="${wheel_radius}"/></geometry>
+      <geometry>
+        <mesh filename="package://warehouse_description/meshes/amr_wheel.stl"/>
+      </geometry>
       <material name="amr_tyre"/>
-    </visual>
-    <visual>
-      <origin xyz="0 0 0.045" rpy="0 0 0"/>
-      <geometry><cylinder length="0.015" radius="0.093"/></geometry>
-      <material name="amr_silver"/>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0"/>
-      <geometry><cylinder length="${wheel_width}" radius="${wheel_radius}"/></geometry>
+      <geometry>
+        <cylinder length="${wheel_width}" radius="${wheel_radius}"/>
+      </geometry>
     </collision>
     <inertial>
       <mass value="0.800"/>
@@ -223,11 +186,11 @@
     </inertial>
   </link>
 
-  <!-- ── Front Caster Ball ── -->
+  <!-- ── Front Caster ── -->
   <joint name="${robot_ns}/caster_front_joint" type="fixed">
     <parent link="${robot_ns}/base_link"/>
     <child  link="${robot_ns}/caster_front_link"/>
-    <origin xyz="${caster_front_x} 0 ${caster_offset_z}" rpy="0 0 0"/>
+    <origin xyz="${caster_front_x} 0 ${caster_z}" rpy="0 0 0"/>
   </joint>
   <link name="${robot_ns}/caster_front_link">
     <visual>
@@ -243,11 +206,11 @@
     </inertial>
   </link>
 
-  <!-- ── Rear Caster Ball ── -->
+  <!-- ── Rear Caster ── -->
   <joint name="${robot_ns}/caster_rear_joint" type="fixed">
     <parent link="${robot_ns}/base_link"/>
     <child  link="${robot_ns}/caster_rear_link"/>
-    <origin xyz="${caster_rear_x} 0 ${caster_offset_z}" rpy="0 0 0"/>
+    <origin xyz="${caster_rear_x} 0 ${caster_z}" rpy="0 0 0"/>
   </joint>
   <link name="${robot_ns}/caster_rear_link">
     <visual>
@@ -263,7 +226,7 @@
     </inertial>
   </link>
 
-  <!-- ── LiDAR — mounted at sensor ring height (0.895 m above ground) ── -->
+  <!-- ── LiDAR — at sensor ring height (0.896 m above ground) ── -->
   <xacro:if value="$(arg laser_enable)">
     <joint name="${robot_ns}/scan_joint" type="fixed">
       <parent link="${robot_ns}/base_link"/>
@@ -276,7 +239,6 @@
         <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0" ixz="0" iyz="0"/>
       </inertial>
     </link>
-
     <gazebo reference="${robot_ns}/base_scan">
       <sensor type="ray" name="${robot_ns}_lidar">
         <pose>0 0 0 0 0 0</pose>
@@ -330,13 +292,14 @@
   </xacro:if>
 
   <!-- ── Gazebo material overrides ── -->
+  <!-- Body parts: Gazebo uses its own material system for meshes -->
   <gazebo reference="${robot_ns}/base_link">
     <visual>
       <material>
         <ambient>0.90 0.50 0.00 1</ambient>
         <diffuse>1.00 0.55 0.00 1</diffuse>
-        <specular>0.35 0.22 0.00 1</specular>
-        <emissive>0.05 0.03 0.00 1</emissive>
+        <specular>0.40 0.25 0.05 1</specular>
+        <emissive>0.04 0.02 0.00 1</emissive>
       </material>
     </visual>
   </gazebo>
@@ -345,9 +308,6 @@
   </gazebo>
   <gazebo reference="${robot_ns}/wheel_right_link">
     <material>Gazebo/FlatBlack</material>
-  </gazebo>
-  <gazebo reference="${robot_ns}/base_scan">
-    <material>Gazebo/Grey</material>
   </gazebo>
 
   <!-- ── Differential Drive Plugin ── -->
@@ -360,7 +320,7 @@
       <right_joint>${robot_ns}/wheel_right_joint</right_joint>
       <wheel_separation>0.580</wheel_separation>
       <wheel_diameter>0.340</wheel_diameter>
-      <!-- 80 Nm: ample for 60 kg robot; 40 rad/s² ramp → 0→3.5 m/s in ~0.5 s (stable) -->
+      <!-- 80 Nm / 40 rad/s²: smooth 0→3.5 m/s in ~0.5 s; no tipping with 60 kg mass -->
       <max_wheel_torque>80</max_wheel_torque>
       <max_wheel_acceleration>40.0</max_wheel_acceleration>
       <command_topic>cmd_vel</command_topic>
