@@ -101,6 +101,7 @@ class MissionExecutorNode(Node):
         self._current_y: float = spawn[1]
         self._current_theta: float = 0.0
         self._last_scan: Optional[LaserScan] = None
+        self._danger_zone_start: float = 0.0  # monotonic time when robot first entered DANGER zone
 
         cb_subs = ReentrantCallbackGroup()
         cb_nav = ReentrantCallbackGroup()
@@ -173,8 +174,8 @@ class MissionExecutorNode(Node):
     def _avoid_obstacles(self, desired: Twist) -> Twist:
         """
         LiDAR-based obstacle avoidance for the 5× scaled robot.
-        WARN zone  (< 2.5 m): reduce speed + steer toward clear side.
-        DANGER zone (< 1.0 m): near-stop + hard steer.
+        WARN zone   (< 2.5 m): reduce speed + steer toward clear side.
+        DANGER zone (< 1.0 m): stop and turn; back up after 1 s if still stuck.
         """
         if self._last_scan is None:
             return desired
@@ -195,9 +196,10 @@ class MissionExecutorNode(Node):
         front_min   = min(front_slice) if front_slice else max_r
 
         WARN_DIST   = 2.5   # metres — start steering (robot body ≈ 0.525 m radius)
-        DANGER_DIST = 1.0   # metres — near-stop
+        DANGER_DIST = 1.0   # metres — stop and turn
 
         if front_min >= WARN_DIST:
+            self._danger_zone_start = 0.0  # clear escape timer when path is open
             return desired
 
         left_slice  = clean[front + arc30 : front + arc90]
@@ -208,19 +210,36 @@ class MissionExecutorNode(Node):
 
         out = Twist()
         if front_min < DANGER_DIST:
-            # Nearly touching — crawl and steer hard
-            out.linear.x  = 0.2
-            out.angular.z = turn_dir * 2.5
-            self.get_logger().warn(
-                f"[{self._robot_id}] DANGER: obstacle {front_min:.2f} m ahead — hard turn"
-            )
+            now = time.monotonic()
+            if self._danger_zone_start == 0.0:
+                self._danger_zone_start = now
+            in_danger = now - self._danger_zone_start
+
+            if in_danger > 1.0:
+                # Stuck > 1 s — back up while turning hard to escape
+                out.linear.x  = -1.0
+                out.angular.z = turn_dir * 3.0
+                self.get_logger().warn(
+                    f"[{self._robot_id}] DANGER: {front_min:.2f} m — BACKING UP "
+                    f"({in_danger:.1f}s stuck)"
+                )
+            else:
+                # First second: full stop + hard turn (do NOT press forward into wall)
+                out.linear.x  = 0.0
+                out.angular.z = turn_dir * 3.0
+                self.get_logger().warn(
+                    f"[{self._robot_id}] DANGER: {front_min:.2f} m — turning "
+                    f"({'left' if turn_dir > 0 else 'right'})"
+                )
         else:
-            # Warning zone — blend: keep some speed, add corrective steer
+            # WARN zone — blend speed with corrective steer; reset escape timer
+            self._danger_zone_start = 0.0
             scale = (front_min - DANGER_DIST) / (WARN_DIST - DANGER_DIST)
             out.linear.x  = desired.linear.x * (0.3 + 0.5 * scale)
             out.angular.z = turn_dir * 1.8
             self.get_logger().info(
-                f"[{self._robot_id}] obstacle {front_min:.2f} m — steering {'left' if turn_dir>0 else 'right'}"
+                f"[{self._robot_id}] obstacle {front_min:.2f} m — "
+                f"steering {'left' if turn_dir > 0 else 'right'}"
             )
         return out
 
@@ -383,10 +402,17 @@ class MissionExecutorNode(Node):
 
         self._cmd_vel_pub.publish(Twist())
 
-        if not self._task_cancelled:
-            self._publish_task_status(task_id, "navigate", goal, 1.0, True, False)
-            return True
-        return False
+        if self._task_cancelled:
+            return False
+
+        arrived = self._dist_to(x, y) < ARRIVAL_DIST * 2.0
+        if not arrived:
+            self.get_logger().warn(
+                f"[{self._robot_id}] Navigation timeout to {goal} "
+                f"(dist={self._dist_to(x, y):.1f}m) — continuing anyway"
+            )
+        self._publish_task_status(task_id, "navigate", goal, 1.0, True, False)
+        return True
 
     def _exec_patrol(
         self, task_id: str, start_goal: str, params: Dict[str, Any]
