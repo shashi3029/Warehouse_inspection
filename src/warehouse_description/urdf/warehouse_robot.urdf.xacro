@@ -74,11 +74,7 @@
     </inertial>
   </link>
   <gazebo reference="${robot_ns}/base_link">
-    <material>
-      <ambient>0.18 0.18 0.18 1</ambient>
-      <diffuse>0.22 0.22 0.22 1</diffuse>
-      <specular>0.10 0.10 0.10 1</specular>
-    </material>
+    <material>Gazebo/DarkGrey</material>
   </gazebo>
 
   <!-- ═══════════════════════════════════════════════════════════════════
@@ -97,11 +93,7 @@
     </inertial>
   </link>
   <gazebo reference="${robot_ns}/top_plate_link">
-    <material>
-      <ambient>0.18 0.18 0.18 1</ambient>
-      <diffuse>0.22 0.22 0.22 1</diffuse>
-      <specular>0.10 0.10 0.10 1</specular>
-    </material>
+    <material>Gazebo/DarkGrey</material>
   </gazebo>
 
   <!-- ═══════════════════════════════════════════════════════════════════
@@ -120,11 +112,7 @@
     </inertial>
   </link>
   <gazebo reference="${robot_ns}/standoff_fl_link">
-    <material>
-      <ambient>0.18 0.18 0.18 1</ambient>
-      <diffuse>0.22 0.22 0.22 1</diffuse>
-      <specular>0.10 0.10 0.10 1</specular>
-    </material>
+    <material>Gazebo/DarkGrey</material>
   </gazebo>
 
   <xacro:fixed_joint name="standoff_fr_jnt" parent="base_link" child="standoff_fr_link"
@@ -140,11 +128,7 @@
     </inertial>
   </link>
   <gazebo reference="${robot_ns}/standoff_fr_link">
-    <material>
-      <ambient>0.18 0.18 0.18 1</ambient>
-      <diffuse>0.22 0.22 0.22 1</diffuse>
-      <specular>0.10 0.10 0.10 1</specular>
-    </material>
+    <material>Gazebo/DarkGrey</material>
   </gazebo>
 
   <xacro:fixed_joint name="standoff_rl_jnt" parent="base_link" child="standoff_rl_link"
@@ -160,11 +144,7 @@
     </inertial>
   </link>
   <gazebo reference="${robot_ns}/standoff_rl_link">
-    <material>
-      <ambient>0.18 0.18 0.18 1</ambient>
-      <diffuse>0.22 0.22 0.22 1</diffuse>
-      <specular>0.10 0.10 0.10 1</specular>
-    </material>
+    <material>Gazebo/DarkGrey</material>
   </gazebo>
 
   <xacro:fixed_joint name="standoff_rr_jnt" parent="base_link" child="standoff_rr_link"
@@ -180,11 +160,7 @@
     </inertial>
   </link>
   <gazebo reference="${robot_ns}/standoff_rr_link">
-    <material>
-      <ambient>0.18 0.18 0.18 1</ambient>
-      <diffuse>0.22 0.22 0.22 1</diffuse>
-      <specular>0.10 0.10 0.10 1</specular>
-    </material>
+    <material>Gazebo/DarkGrey</material>
   </gazebo>
 
   <!-- ═══════════════════════════════════════════════════════════════════
@@ -203,11 +179,7 @@
     </inertial>
   </link>
   <gazebo reference="${robot_ns}/lidar_housing_link">
-    <material>
-      <ambient>0.10 0.10 0.10 1</ambient>
-      <diffuse>0.12 0.12 0.12 1</diffuse>
-      <specular>0.08 0.08 0.08 1</specular>
-    </material>
+    <material>Gazebo/Black</material>
   </gazebo>
 
   <!-- ═══════════════════════════════════════════════════════════════════
