@@ -46,8 +46,8 @@
   <xacro:property name="lidar_h"        value="0.175"/>
   <xacro:property name="lidar_r"        value="0.190"/>
 
-  <!-- casters: centre at ground + caster_radius = −0.170 + 0.050 = −0.120     -->
-  <xacro:property name="caster_z"       value="-0.120"/>
+  <!-- casters: centre at ground + caster_radius = −0.165 + 0.050 = −0.115     -->
+  <xacro:property name="caster_z"       value="-0.115"/>
 
   <!-- Helper: fixed joint -->
   <xacro:macro name="fixed_joint" params="name parent child ox oy oz">
