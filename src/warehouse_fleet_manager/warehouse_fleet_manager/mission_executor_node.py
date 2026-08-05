@@ -158,9 +158,9 @@ class MissionExecutorNode(Node):
         )
 
     def _odom_callback(self, msg: Odometry) -> None:
-        # Gazebo diff drive publishes odom in world frame already
-        self._current_x = msg.pose.pose.position.x
-        self._current_y = msg.pose.pose.position.y
+        # Diff drive odom frame origin = spawn position; add offset for world coords
+        self._current_x = msg.pose.pose.position.x + self._spawn_x
+        self._current_y = msg.pose.pose.position.y + self._spawn_y
         q = msg.pose.pose.orientation
         self._current_theta = math.atan2(
             2.0 * (q.w * q.z + q.x * q.y),
@@ -320,6 +320,7 @@ class MissionExecutorNode(Node):
         """
         ARRIVAL_DIST = 0.8
         MAX_LIN = 2.0
+        MIN_LIN = 1.0   # always move forward — never let pure rotation trap the robot
         MAX_ANG = 2.5
         RATE = 0.05  # 20 Hz
 
@@ -346,13 +347,10 @@ class MissionExecutorNode(Node):
             )
 
             twist = Twist()
-            # Speed tapers as robot approaches; minimum 0.6 m/s so it always closes in
-            twist.linear.x = min(MAX_LIN, max(0.15, dist * 1.2))
+            # Curved-pursuit: always maintain minimum forward speed so robot visibly moves
+            twist.linear.x = min(MAX_LIN, max(MIN_LIN, dist * 1.2))
             # Steer toward target proportionally
             twist.angular.z = max(-MAX_ANG, min(MAX_ANG, 2.0 * heading_error))
-            # Slow down when turning sharply (>~57°)
-            if abs(heading_error) > 1.0:
-                twist.linear.x *= 0.4
 
             self._cmd_vel_pub.publish(twist)
 
