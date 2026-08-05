@@ -319,12 +319,12 @@ class MissionExecutorNode(Node):
         Falls back to time-based dead reckoning if odom never arrives.
         """
         ARRIVAL_DIST = 1.0
-        MAX_LIN = 4.0
-        MAX_ANG = 3.0
+        MAX_LIN = 3.5
+        MAX_ANG = 2.5
         RATE = 0.05  # 20 Hz
 
         start_dist = max(0.1, self._dist_to(x, y))
-        time_limit = start_dist / MAX_LIN * 3.0 + 10.0  # generous upper bound
+        time_limit = start_dist / MAX_LIN * 4.0 + 12.0  # generous upper bound
         elapsed = 0.0
 
         self.get_logger().info(
