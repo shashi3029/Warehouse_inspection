@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Aseptic Sterilization & Packing System</title>
+<style>
+/* ── Tokens ───────────────────────────────────────── */
+:root {
+  --bg:        #071623;
+  --surface:   #0C1F38;
+  --border:    #1A3A60;
+  --text:      #C8DFF0;
+  --dim:       #4A7A9E;
+  --hot:       #FF4646;
+  --cool:      #14C96A;
+  --chill:     #38BDF8;
+  --steam:     #F5A623;
+  --product:   #B28FF0;
+  --accent:    #00D4FF;
+  --ef:        #091D35;   /* equipment fill */
+  --es:        #2060A0;   /* equipment stroke */
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);
+  font-family:'Courier New',Courier,monospace}
+
+/* ── Slides ───────────────────────────────────────── */
+.deck{position:relative;width:100vw;height:100vh}
+.slide{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .6s}
+.slide.on{opacity:1;pointer-events:all}
+
+/* ── Title slide ──────────────────────────────────── */
+.s-title{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse 70% 60% at 35% 45%,#0F2E54 0%,#071623 65%)}
+.eyebrow{font-size:10px;letter-spacing:.4em;color:var(--accent);margin-bottom:22px;text-transform:uppercase}
+h1{font-size:clamp(28px,4.2vw,60px);font-weight:700;text-transform:uppercase;letter-spacing:.06em;
+  line-height:1.1;text-align:center;text-wrap:balance;max-width:900px}
+h1 em{color:var(--accent);font-style:normal}
+.sub{margin-top:14px;font-size:13px;letter-spacing:.22em;color:var(--dim)}
+.chips{display:flex;gap:20px;margin-top:52px}
+.chip{padding:9px 26px;font-size:11px;letter-spacing:.18em;border:1px solid;text-transform:uppercase}
+.chip-s{border-color:var(--hot);color:var(--hot)}
+.chip-p{border-color:var(--cool);color:var(--cool)}
+.chip-c{border-color:var(--chill);color:var(--chill)}
+
+/* ── Process slide shell ──────────────────────────── */
+.s-proc{display:flex;flex-direction:column}
+.phead{display:flex;align-items:center;gap:16px;padding:14px 32px;border-bottom:1px solid var(--border);flex-shrink:0}
+.ptag{font-size:9px;letter-spacing:.35em;color:var(--dim);text-transform:uppercase}
+.ptitle{font-size:20px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.led{width:9px;height:9px;border-radius:50%;margin-left:auto;animation:pulse 2s ease-in-out infinite}
+.led-run{background:var(--cool);box-shadow:0 0 8px var(--cool);color:var(--cool)}
+.legend{display:flex;gap:18px}
+.li{display:flex;align-items:center;gap:5px;font-size:9px;letter-spacing:.1em;color:var(--dim)}
+.lc{width:22px;height:3px;border-radius:2px}
+.flow-svg{flex:1;display:block;overflow:visible}
+
+/* ── Thank you ────────────────────────────────────── */
+.s-ty{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse 70% 60% at 65% 55%,#0F2E54 0%,#071623 65%)}
+.ty{font-size:clamp(36px,5.5vw,84px);font-weight:700;letter-spacing:.3em;text-transform:uppercase}
+.ty-s{font-size:12px;letter-spacing:.28em;color:var(--dim);margin-top:18px}
+
+/* ── Nav ──────────────────────────────────────────── */
+.nav{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);display:flex;gap:10px;z-index:9}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--border);border:1px solid var(--dim);cursor:pointer;transition:.3s}
+.dot.on{background:var(--accent)}
+.navb{position:fixed;bottom:18px;right:28px;display:flex;gap:10px;z-index:9}
+.nb{background:var(--surface);border:1px solid var(--border);color:var(--text);
+  font-family:'Courier New',monospace;font-size:12px;letter-spacing:.1em;padding:5px 16px;cursor:pointer}
+.nb:hover{background:var(--border)}
+
+/* ── SVG base styles ──────────────────────────────── */
+.ef{fill:var(--ef);stroke:var(--es);stroke-width:1.5}
+.ef-active{fill:#0D2D50;stroke:#3A80C0;stroke-width:1.5;filter:drop-shadow(0 0 5px rgba(0,200,255,.15))}
+.lbl{font:700 9.5px/1 'Courier New',monospace;fill:var(--text);text-anchor:middle;text-transform:uppercase;letter-spacing:.06em}
+.lbl-s{font:8px/1 'Courier New',monospace;fill:var(--dim);text-anchor:middle;letter-spacing:.04em}
+.temp{font:bold 10px/1 'Courier New',monospace;text-anchor:middle}
+.th{fill:var(--hot)}  .tc{fill:var(--cool)}  .tb{fill:var(--chill)}  .ts{fill:var(--steam)}
+
+/* ── Pipe animations ──────────────────────────────── */
+@keyframes fH{from{stroke-dashoffset:44}to{stroke-dashoffset:0}}
+@keyframes fC{from{stroke-dashoffset:44}to{stroke-dashoffset:0}}
+@keyframes fB{from{stroke-dashoffset:44}to{stroke-dashoffset:0}}
+@keyframes fS{from{stroke-dashoffset:30}to{stroke-dashoffset:0}}
+@keyframes fP{from{stroke-dashoffset:44}to{stroke-dashoffset:0}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+.pH{stroke:var(--hot);stroke-width:4;fill:none;stroke-dasharray:14 6;animation:fH .75s linear infinite}
+.pC{stroke:var(--cool);stroke-width:3.5;fill:none;stroke-dasharray:14 6;animation:fC 1s linear infinite;opacity:.85}
+.pB{stroke:var(--chill);stroke-width:3.5;fill:none;stroke-dasharray:14 6;animation:fB 1.1s linear infinite;opacity:.85}
+.pS{stroke:var(--steam);stroke-width:3;fill:none;stroke-dasharray:8 5;animation:fS .6s linear infinite;opacity:.8}
+.pP{stroke:var(--product);stroke-width:4;fill:none;stroke-dasharray:14 6;animation:fP .9s linear infinite}
+.pGr{stroke:var(--border);stroke-width:2;fill:none} /* static gray pipe */
+.arr{fill:var(--dim);stroke:none}
+</style>
+</head>
+<body>
+<div class="deck">
+
+<!-- ══ SLIDE 1 — Title ═══════════════════════════════════════════ -->
+<div class="slide s-title on" id="s0" data-document-role="page" data-label="Title">
+  <div class="eyebrow">Aseptic Processing · Industrial Overview</div>
+  <h1>Aseptic <em>Sterilization</em><br>and Packing System</h1>
+  <div class="sub">SIP &nbsp;·&nbsp; PRODUCTION &nbsp;·&nbsp; CIP &nbsp;&nbsp;—&nbsp;&nbsp; PROCESS FLOW DIAGRAMS</div>
+  <div class="chips">
+    <div class="chip chip-s">SIP — Sterilization in Place</div>
+    <div class="chip chip-p">Production Run</div>
+    <div class="chip chip-c">CIP — Cleaning in Place</div>
+  </div>
+</div>
+
+<!-- ══ SLIDE 2 — SIP ═════════════════════════════════════════════ -->
+<div class="slide s-proc" id="s1" data-document-role="page" data-label="SIP">
+  <div class="phead">
+    <span class="ptag">Process 01 of 03</span>
+    <span class="ptitle" style="color:var(--hot)">SIP — Sterilization in Place</span>
+    <div class="legend">
+      <div class="li"><div class="lc" style="background:var(--hot)"></div>Hot / Steam</div>
+      <div class="li"><div class="lc" style="background:var(--cool)"></div>Cooling (CTW)</div>
+      <div class="li"><div class="lc" style="background:var(--chill)"></div>Chilled Water</div>
+      <div class="li"><div class="lc" style="background:var(--steam)"></div>Pure Steam / N₂</div>
+    </div>
+    <div class="led led-run"></div>
+  </div>
+  <svg class="flow-svg" viewBox="0 0 1600 640" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <marker id="ah" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+        <polygon points="0 0,7 3.5,0 7" fill="var(--hot)"/>
+      </marker>
+      <marker id="ac" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+        <polygon points="0 0,7 3.5,0 7" fill="var(--cool)"/>
+      </marker>
+      <marker id="ab" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+        <polygon points="0 0,7 3.5,0 7" fill="var(--chill)"/>
+      </marker>
+      <marker id="as" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+        <polygon points="0 0,7 3.5,0 7" fill="var(--steam)"/>
+      </marker>
+      <marker id="ap" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+        <polygon points="0 0,7 3.5,0 7" fill="var(--product)"/>
+      </marker>
+    </defs>
+
+    <!-- ─── PURE WATER label ─── -->
+    <text x="42" y="185" class="lbl-s" style="fill:var(--chill)">PURE</text>
+    <text x="42" y="197" class="lbl-s" style="fill:var(--chill)">WATER</text>
+    <!-- valve symbol -->
+    <path d="M28,208 L56,220 L56,208 L28,220 Z" fill="none" stroke="var(--cool)" stroke-width="2"/>
+    <line x1="42" y1="208" x2="42" y2="202" stroke="var(--cool)" stroke-width="2"/>
+    <!-- PW → tank -->
+    <path d="M57,214 L118,214" class="pB" marker-end="url(#ab)"/>
+
+    <!-- ─── BALANCE TANK ─── -->
+    <!-- Body -->
+    <rect x="118" y="152" width="72" height="108" rx="3" class="ef-active"/>
+    <ellipse cx="154" cy="152" rx="36" ry="11" class="ef-active"/>
+    <path d="M118,260 L154,288 L190,260" fill="none" stroke="var(--es)" stroke-width="1.5"/>
+    <!-- level lines -->
+    <line x1="122" y1="195" x2="186" y2="195" stroke="var(--border)" stroke-width="1"/>
+    <line x1="122" y1="215" x2="186" y2="215" stroke="var(--border)" stroke-width="1"/>
+    <!-- Labels -->
+    <text x="154" y="315" class="lbl">BALANCE</text>
+    <text x="154" y="328" class="lbl">TANK</text>
+    <text x="154" y="143" class="temp tc">75 °C</text>
+
+    <!-- TANK → PUMP pipe -->
+    <path d="M190,214 L268,214" class="pH" marker-end="url(#ah)"/>
+
+    <!-- ─── FEED PUMP ─── -->
+    <circle cx="310" cy="214" r="32" class="ef-active"/>
+    <!-- impeller lines -->
+    <line x1="310" y1="188" x2="310" y2="240" stroke="var(--border)" stroke-width="1.2"/>
+    <line x1="284" y1="214" x2="336" y2="214" stroke="var(--border)" stroke-width="1.2"/>
+    <circle cx="310" cy="214" r="14" class="ef-active"/>
+    <!-- Motor block -->
+    <rect x="335" y="200" width="42" height="28" rx="2" fill="#081828" stroke="var(--border)" stroke-width="1.2"/>
+    <!-- shaft -->
+    <line x1="335" y1="214" x2="342" y2="214" stroke="var(--es)" stroke-width="2"/>
+    <text x="310" y="267" class="lbl">FEED PUMP</text>
+
+    <!-- PUMP → HEATING -->
+    <path d="M377,214 L432,214" class="pH" marker-end="url(#ah)"/>
+
+    <!-- ─── HEATING HEX ─── -->
+    <rect x="432" y="178" width="120" height="72" rx="3" class="ef-active"/>
+    <!-- tube bundle -->
+    <line x1="442" y1="197" x2="542" y2="197" stroke="var(--border)" stroke-width="1.2"/>
+    <line x1="442" y1="207" x2="542" y2="207" stroke="var(--border)" stroke-width="1.2"/>
+    <line x1="442" y1="217" x2="542" y2="217" stroke="var(--border)" stroke-width="1.2"/>
+    <line x1="442" y1="227" x2="542" y2="227" stroke="var(--border)" stroke-width="1.2"/>
+    <line x1="442" y1="237" x2="542" y2="237" stroke="var(--border)" stroke-width="1.2"/>
+    <!-- end caps -->
+    <ellipse cx="432" cy="214" rx="5" ry="36" class="ef-active"/>
+    <ellipse cx="552" cy="214" rx="5" ry="36" class="ef-active"/>
+    <text x="492" y="267" class="lbl">HEATING</text>
+    <text x="492" y="168" class="temp th">129 °C</text>
+    <!-- Steam in (from below) -->
+    <path d="M480,250 L480,310" class="pS"/>
+    <text x="480" y="326" class="lbl-s" style="fill:var(--steam)">STEAM</text>
+    <!-- Hot water return loop (small) -->
+    <path d="M545,196 L580,196 L580,155 L492,155 L492,168" class="pH" opacity=".6"/>
+    <text x="582" y="180" class="lbl-s" style="fill:var(--hot);font-size:8px">HOT</text>
+    <text x="582" y="190" class="lbl-s" style="fill:var(--hot);font-size:8px">WATER</text>
+    <!-- Heat pump below -->
+    <circle cx="480" cy="350" r="18" fill="var(--ef)" stroke="var(--border)" stroke-width="1.2"/>
+    <text x="480" y="385" class="lbl-s">HEAT PUMP</text>
+
+    <!-- HEATING → HOLDING -->
+    <path d="M552,214 L620,214" class="pH" marker-end="url(#ah)"/>
+
+    <!-- ─── HOLDING TUBES ─── -->
+    <rect x="620" y="183" width="160" height="62" rx="3" class="ef-active"/>
+    <!-- insulation dashes -->
+    <rect x="616" y="179" width="168" height="70" rx="4" fill="none" stroke="var(--dim)" stroke-width="1" stroke-dasharray="5 4" opacity=".5"/>
+    <!-- internal tubes -->
+    <line x1="630" y1="198" x2="770" y2="198" stroke="var(--border)" stroke-width="1"/>
+    <line x1="630" y1="206" x2="770" y2="206" stroke="var(--border)" stroke-width="1"/>
+    <line x1="630" y1="214" x2="770" y2="214" stroke="var(--border)" stroke-width="1"/>
+    <line x1="630" y1="222" x2="770" y2="222" stroke="var(--border)" stroke-width="1"/>
+    <line x1="630" y1="230" x2="770" y2="230" stroke="var(--border)" stroke-width="1"/>
+    <text x="700" y="264" class="lbl">HOLDING TUBES</text>
+    <text x="700" y="172" class="temp th">129 °C</text>
+
+    <!-- HOLDING → COOLING -->
+    <path d="M780,214 L848,214" class="pH" marker-end="url(#ah)"/>
+
+    <!-- ─── COOLING HEX ─── -->
+    <rect x="848" y="178" width="112" height="72" rx="3" class="ef-active"/>
+    <line x1="858" y1="197" x2="950" y2="197" stroke="var(--border)" stroke-width="1.2"/>
+    <line x1="858" y1="207" x2="950" y2="207" stroke="var(--border)" stroke-width="1.2"/>
+    <line x1="858" y1="217" x2="950" y2="217" stroke="var(--border)" stroke-width="1.2"/>
+    <line x1="858" y1="227" x2="950" y2="227" stroke="var(--border)" stroke-width="1.2"/>
+    <line x1="858" y1="237" x2="950" y2="237" stroke="var(--border)" stroke-width="1.2"/>
+    <ellipse cx="848" cy="214" rx="5" ry="36" class="ef-active"/>
+    <ellipse cx="960" cy="214" rx="5" ry="36" class="ef-active"/>
+    <text x="904" y="264" class="lbl">COOLING</text>
+    <!-- CTW in/out -->
+    <path d="M870,178 L870,130" class="pC"/>
+    <path d="M938,130 L938,178" class="pC" marker-end="url(#ac)"/>
+    <text x="870" y="122" class="lbl-s" style="fill:var(--cool)">CTW ↑</text>
+    <text x="938" y="122" class="lbl-s" style="fill:var(--cool)">CTW ↓</text>
+
+    <!-- COOLING → CHILLING -->
+    <path d="M960,214 L1020,214" class="pB" marker-end="url(#ab)"/>
+
+    <!-- ─── CHILLING HEX ─── -->
+    <rect x="1020" y="178" width="112" height="72" rx="3" class="ef-active"/>
+    <line x1="1030" y1="197" x2="1122" y2="197" stroke="var(--border)" stroke-width="1.2"/>
+    <line x1="1030" y1="207" x2="1122" y2="207" stroke="var(--border)" stroke-width="1.2"/>
+    <line x1="1030" y1="217" x2="1122" y2="217" stroke="var(--border)" stroke-width="1.2"/>
+    <line x1="1030" y1="227" x2="1122" y2="227" stroke="var(--border)" stroke-width="1.2"/>
+    <line x1="1030" y1="237" x2="1122" y2="237" stroke="var(--border)" stroke-width="1.2"/>
+    <ellipse cx="1020" cy="214" rx="5" ry="36" class="ef-active"/>
+    <ellipse cx="1132" cy="214" rx="5" ry="36" class="ef-active"/>
+    <text x="1076" y="264" class="lbl">CHILLING</text>
+    <text x="1076" y="168" class="temp tb">121 °C</text>
+    <!-- Chilled water in/out -->
+    <path d="M1040,178 L1040,130" class="pB"/>
+    <path d="M1112,130 L1112,178" class="pB" marker-end="url(#ab)"/>
+    <text x="1034" y="122" class="lbl-s" style="fill:var(--chill)">CW</text>
+
+    <!-- CHILLING → UP → STERI COOLER (at top) -->
+    <path d="M1076,178 L1076,88 L700,88" class="pH" marker-end="url(#ah)"/>
+
+    <!-- ─── STERI COOLER (top center) ─── -->
+    <rect x="560" y="52" width="140" height="52" rx="3" class="ef-active"/>
+    <ellipse cx="560" cy="78" rx="6" ry="26" class="ef-active"/>
+    <ellipse cx="700" cy="78" rx="6" ry="26" class="ef-active"/>
+    <line x1="572" y1="66" x2="688" y2="66" stroke="var(--border)" stroke-width="1.2"/>
+    <line x1="572" y1="73" x2="688" y2="73" stroke="var(--border)" stroke-width="1.2"/>
+    <line x1="572" y1="80" x2="688" y2="80" stroke="var(--border)" stroke-width="1.2"/>
+    <line x1="572" y1="87" x2="688" y2="87" stroke="var(--border)" stroke-width="1.2"/>
+    <text x="630" y="120" class="lbl">STERI COOLER</text>
+    <text x="630" y="44" class="temp tc">75 °C</text>
+    <!-- CTW in to steri cooler -->
+    <path d="M580,52 L580,30" class="pC"/>
+    <path d="M680,30 L680,52" class="pC" marker-end="url(#ac)"/>
+    <text x="540" y="25" class="lbl-s" style="fill:var(--cool)">CTW IN</text>
+    <text x="700" y="25" class="lbl-s" style="fill:var(--cool)">CTW OUT</text>
+    <!-- STERI COOLER → Balance Tank (return, left side) -->
+    <path d="M560,78 L154,78 L154,152" class="pH" marker-end="url(#ah)"/>
+
+    <!-- ═══ ASEPTIC SECTION (right side) ═══ -->
+    <!-- vertical divider -->
+    <line x1="1200" y1="30" x2="1200" y2="620" stroke="var(--border)" stroke-width="1" stroke-dasharray="6 4" opacity=".5"/>
+
+    <!-- PURE STEAM input to Aseptic Tank -->
+    <path d="M1250,120 L1280,160" class="pS" marker-end="url(#as)"/>
+    <text x="1218" y="112" class="lbl-s" style="fill:var(--steam)">PURE</text>
+    <text x="1218" y="122" class="lbl-s" style="fill:var(--steam)">STEAM</text>
+
+    <!-- AIR FILTER -->
+    <rect x="1350" y="88" width="60" height="40" rx="2" class="ef"/>
+    <line x1="1360" y1="100" x2="1400" y2="100" stroke="var(--border)" stroke-width="1"/>
+    <line x1="1360" y1="107" x2="1400" y2="107" stroke="var(--border)" stroke-width="1"/>
+    <line x1="1360" y1="114" x2="1400" y2="114" stroke="var(--border)" stroke-width="1"/>
+    <text x="1380" y="142" class="lbl-s">AIR FILTER</text>
+    <!-- N2 -->
+    <path d="M1440,88 L1440,70" class="pS"/>
+    <path d="M1440,70 L1380,70 L1380,88" class="pS" marker-end="url(#as)"/>
+    <text x="1460" y="66" class="lbl-s" style="fill:var(--steam)">N₂</text>
+    <!-- Compressed Air -->
+    <path d="M1490,108 L1412,108" class="pS" marker-end="url(#as)"/>
+    <text x="1500" y="112" class="lbl-s" style="fill:var(--steam)">COMP AIR</text>
+    <!-- Air filter → Aseptic Tank -->
+    <path d="M1350,108 L1330,108 L1330,160" class="pS" marker-end="url(#as)"/>
+
+    <!-- ─── ASEPTIC TANK ─── -->
+    <rect x="1270" y="160" width="88" height="140" rx="3" class="ef-active"/>
+    <ellipse cx="1314" cy="160" rx="44" ry="14" class="ef-active"/>
+    <ellipse cx="1314" cy="300" rx="44" ry="14" class="ef-active"/>
+    <!-- internal detail -->
+    <line x1="1278" y1="220" x2="1350" y2="220" stroke="var(--border)" stroke-width="1"/>
+    <line x1="1278" y1="240" x2="1350" y2="240" stroke="var(--border)" stroke-width="1"/>
+    <text x="1314" y="342" class="lbl">ASEPTIC</text>
+    <text x="1314" y="355" class="lbl">TANK</text>
+    <text x="1314" y="148" class="temp th">129 °C</text>
+
+    <!-- ASEPTIC TANK → FILLER -->
+    <path d="M1314,314 L1314,378" class="pS" marker-end="url(#as)"/>
+
+    <!-- ─── FILLER ─── -->
+    <rect x="1274" y="378" width="80" height="108" rx="3" class="ef-active"/>
+    <!-- filling nozzles at bottom -->
+    <rect x="1285" y="474" width="12" height="16" rx="1" fill="var(--border)"/>
+    <rect x="1302" y="474" width="12" height="16" rx="1" fill="var(--border)"/>
+    <rect x="1319" y="474" width="12" height="16" rx="1" fill="var(--border)"/>
+    <rect x="1336" y="474" width="12" height="16" rx="1" fill="var(--border)"/>
+    <!-- top drive -->
+    <rect x="1285" y="366" width="58" height="18" rx="2" fill="var(--ef)" stroke="var(--border)" stroke-width="1.2"/>
+    <text x="1314" y="508" class="lbl">FILLER</text>
+    <text x="1314" y="521" class="lbl-s">MACHINE</text>
+    <text x="1314" y="368" class="temp th">129 °C</text>
+
+    <!-- Filler → Condensate -->
+    <path d="M1314,490 L1314,565" class="pH" marker-end="url(#ah)"/>
+    <text x="1314" y="584" class="lbl" style="fill:var(--dim)">CONDENSATE</text>
+    <text x="1314" y="597" class="lbl" style="fill:var(--dim)">DRAIN</text>
+  </svg>
+</div>
+
+<!-- ══ SLIDE 3 — PRODUCTION ════════════════════════════════════ -->
+<div class="slide s-proc" id="s2" data-document-role="page" data-label="Production">
+  <div class="phead">
+    <span class="ptag">Process 02 of 03</span>
+    <span class="ptitle" style="color:var(--cool)">Production Run</span>
+    <div class="legend">
+      <div class="li"><div class="lc" style="background:var(--hot)"></div>Hot / Steam</div>
+      <div class="li"><div class="lc" style="background:var(--cool)"></div>Cooling (CTW)</div>
+      <div class="li"><div class="lc" style="background:var(--chill)"></div>Chilled Water</div>
+      <div class="li"><div class="lc" style="background:var(--product)"></div>Product Flow</div>
+    </div>
+    <div class="led led-run"></div>
+  </div>
+  <svg class="flow-svg" viewBox="0 0 1600 640" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <marker id="ahP" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+        <polygon points="0 0,7 3.5,0 7" fill="var(--hot)"/></marker>
+      <marker id="acP" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+        <polygon points="0 0,7 3.5,0 7" fill="var(--cool)"/></marker>
+      <marker id="abP" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+        <polygon points="0 0,7 3.5,0 7" fill="var(--chill)"/></marker>
+      <marker id="asP" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+        <polygon points="0 0,7 3.5,0 7" fill="var(--steam)"/></marker>
+      <marker id="appP" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+        <polygon points="0 0,7 3.5,0 7" fill="var(--product)"/></marker>
+    </defs>
+
+    <!-- FEED input -->
+    <text x="42" y="192" class="lbl-s" style="fill:var(--product)">FEED</text>
+    <path d="M28,204 L56,218 L56,204 L28,218 Z" fill="none" stroke="var(--product)" stroke-width="2"/>
+    <line x1="42" y1="204" x2="42" y2="196" stroke="var(--product)" stroke-width="2"/>
+    <path d="M57,211 L118,211" class="pP" marker-end="url(#appP)"/>
+
+    <!-- Balance Tank -->
+    <rect x="118" y="152" width="72" height="108" rx="3" class="ef-active"/>
+    <ellipse cx="154" cy="152" rx="36" ry="11" class="ef-active"/>
+    <path d="M118,260 L154,288 L190,260" fill="none" stroke="var(--es)" stroke-width="1.5"/>
+    <line x1="122" y1="195" x2="186" y2="195" stroke="var(--border)" stroke-width="1"/>
+    <line x1="122" y1="225" x2="186" y2="225" stroke="var(--border)" stroke-width="1"/>
+    <text x="154" y="315" class="lbl">BALANCE</text>
+    <text x="154" y="328" class="lbl">TANK</text>
+
+    <!-- Tank → Pump -->
+    <path d="M190,211 L268,211" class="pP" marker-end="url(#appP)"/>
+
+    <!-- Feed Pump -->
+    <circle cx="310" cy="211" r="32" class="ef-active"/>
+    <line x1="310" y1="185" x2="310" y2="237" stroke="var(--border)" stroke-width="1.2"/>
+    <line x1="284" y1="211" x2="336" y2="211" stroke="var(--border)" stroke-width="1.2"/>
+    <circle cx="310" cy="211" r="14" class="ef-active"/>
+    <rect x="335" y="197" width="42" height="28" rx="2" fill="#081828" stroke="var(--border)" stroke-width="1.2"/>
+    <text x="310" y="264" class="lbl">FEED PUMP</text>
+
+    <!-- Pump → Heating -->
+    <path d="M377,211 L432,211" class="pP" marker-end="url(#appP)"/>
+
+    <!-- Heating HEX -->
+    <rect x="432" y="175" width="120" height="72" rx="3" class="ef-active"/>
+    <line x1="442" y1="194" x2="542" y2="194" stroke="var(--border)" stroke-width="1.2"/>
+    <line x1="442" y1="204" x2="542" y2="204" stroke="var(--border)" stroke-width="1.2"/>
+    <line x1="442" y1="214" x2="542" y2="214" stroke="var(--border)" stroke-width="1.2"/>
+    <line x1="442" y1="224" x2="542" y2="224" stroke="var(--border)" stroke-width="1.2"/>
+    <line x1="442" y1="234" x2="542" y2="234" stroke="var(--border)" stroke-width="1.2"/>
+    <ellipse cx="432" cy="211" rx="5" ry="36" class="ef-active"/>
+    <ellipse cx="552" cy="211" rx="5" ry="36" class="ef-active"/>
+    <text x="492" y="264" class="lbl">HEATING</text>
+    <text x="492" y="166" class="temp th">129 °C</text>
+    <path d="M480,247 L480,310" class="pS"/>
+    <text x="480" y="326" class="lbl-s" style="fill:var(--steam)">STEAM</text>
+
+    <!-- Heating → Holding -->
+    <path d="M552,211 L620,211" class="pP" marker-end="url(#appP)"/>
+
+    <!-- Holding Tubes -->
+    <rect x="620" y="180" width="160" height="62" rx="3" class="ef-active"/>
+    <rect x="616" y="176" width="168" height="70" rx="4" fill="none" stroke="var(--dim)" stroke-width="1" stroke-dasharray="5 4" opacity=".5"/>
+    <line x1="630" y1="195" x2="770" y2="195" stroke="var(--border)" stroke-width="1"/>
+    <line x1="630" y1="203" x2="770" y2="203" stroke="var(--border)" stroke-width="1"/>
+    <line x1="630" y1="211" x2="770" y2="211" stroke="var(--border)" stroke-width="1"/>
+    <line x1="630" y1="219" x2="770" y2="219" stroke="var(--border)" stroke-width="1"/>
+    <line x1="630" y1="227" x2="770" y2="227" stroke="var(--border)" stroke-width="1"/>
+    <text x="700" y="264" class="lbl">HOLDING TUBES</text>
+    <text x="700" y="170" class="temp th">121 °C</text>
+
+    <!-- Holding → Cooling -->
+    <path d="M780,211 L848,211" class="pC" marker-end="url(#acP)"/>
+
+    <!-- Cooling HEX -->
+    <rect x="848" y="175" width="112" height="72" rx="3" class="ef-active"/>
+    <line x1="858" y1="194" x2="950" y2="194" stroke="var(--border)" stroke-width="1.2"/>
+    <line x1="858" y1="204" x2="950" y2="204" stroke="var(--border)" stroke-width="1.2"/>
+    <line x1="858" y1="214" x2="950" y2="214" stroke="var(--border)" stroke-width="1.2"/>
+    <line x1="858" y1="224" x2="950" y2="224" stroke="var(--border)" stroke-width="1.2"/>
+    <line x1="858" y1="234" x2="950" y2="234" stroke="var(--border)" stroke-width="1.2"/>
+    <ellipse cx="848" cy="211" rx="5" ry="36" class="ef-active"/>
+    <ellipse cx="960" cy="211" rx="5" ry="36" class="ef-active"/>
+    <text x="904" y="264" class="lbl">COOLING</text>
+    <text x="904" y="165" class="temp tc">70 °C</text>
+    <path d="M870,175 L870,130" class="pC"/>
+    <path d="M938,130 L938,175" class="pC" marker-end="url(#acP)"/>
+    <text x="870" y="122" class="lbl-s" style="fill:var(--cool)">CTW</text>
+
+    <!-- Cooling → Chilling -->
+    <path d="M960,211 L1020,211" class="pB" marker-end="url(#abP)"/>
+
+    <!-- Chilling HEX -->
+    <rect x="1020" y="175" width="112" height="72" rx="3" class="ef-active"/>
+    <line x1="1030" y1="194" x2="1122" y2="194" stroke="var(--border)" stroke-width="1.2"/>
+    <line x1="1030" y1="204" x2="1122" y2="204" stroke="var(--border)" stroke-width="1.2"/>
+    <line x1="1030" y1="214" x2="1122" y2="214" stroke="var(--border)" stroke-width="1.2"/>
+    <line x1="1030" y1="224" x2="1122" y2="224" stroke="var(--border)" stroke-width="1.2"/>
+    <line x1="1030" y1="234" x2="1122" y2="234" stroke="var(--border)" stroke-width="1.2"/>
+    <ellipse cx="1020" cy="211" rx="5" ry="36" class="ef-active"/>
+    <ellipse cx="1132" cy="211" rx="5" ry="36" class="ef-active"/>
+    <text x="1076" y="264" class="lbl">CHILLING</text>
+    <text x="1076" y="165" class="temp tb">30 °C</text>
+    <path d="M1040,175 L1040,130" class="pB"/>
+    <path d="M1112,130 L1112,175" class="pB" marker-end="url(#abP)"/>
+    <text x="1040" y="122" class="lbl-s" style="fill:var(--chill)">CW</text>
+
+    <!-- Chilling → Aseptic Tank (direct, no steri cooler in production) -->
+    <path d="M1132,211 L1270,211 L1270,160" class="pP" marker-end="url(#appP)"/>
+
+    <!-- Divider -->
+    <line x1="1200" y1="30" x2="1200" y2="620" stroke="var(--border)" stroke-width="1" stroke-dasharray="6 4" opacity=".5"/>
+
+    <!-- Pure Steam + Air Filter + N2 -->
+    <path d="M1250,120 L1280,160" class="pS" marker-end="url(#asP)"/>
+    <text x="1218" y="112" class="lbl-s" style="fill:var(--steam)">PURE STEAM</text>
+    <rect x="1350" y="88" width="60" height="40" rx="2" class="ef"/>
+    <line x1="1360" y1="100" x2="1400" y2="100" stroke="var(--border)" stroke-width="1"/>
+    <line x1="1360" y1="107" x2="1400" y2="107" stroke="var(--border)" stroke-width="1"/>
+    <line x1="1360" y1="114" x2="1400" y2="114" stroke="var(--border)" stroke-width="1"/>
+    <text x="1380" y="142" class="lbl-s">AIR FILTER</text>
+    <path d="M1440,88 L1440,70 L1380,70 L1380,88" class="pS" marker-end="url(#asP)"/>
+    <text x="1460" y="66" class="lbl-s" style="fill:var(--steam)">N₂</text>
+    <path d="M1490,108 L1412,108" class="pS" marker-end="url(#asP)"/>
+    <text x="1500" y="112" class="lbl-s" style="fill:var(--steam)">COMP AIR</text>
+    <path d="M1350,108 L1330,108 L1330,160" class="pS" marker-end="url(#asP)"/>
+
+    <!-- Aseptic Tank -->
+    <rect x="1270" y="160" width="88" height="140" rx="3" class="ef-active"/>
+    <ellipse cx="1314" cy="160" rx="44" ry="14" class="ef-active"/>
+    <ellipse cx="1314" cy="300" rx="44" ry="14" class="ef-active"/>
+    <line x1="1278" y1="220" x2="1350" y2="220" stroke="var(--border)" stroke-width="1"/>
+    <line x1="1278" y1="240" x2="1350" y2="240" stroke="var(--border)" stroke-width="1"/>
+    <text x="1314" y="342" class="lbl">ASEPTIC</text>
+    <text x="1314" y="355" class="lbl">TANK</text>
+
+    <!-- Aseptic Tank → Filler -->
+    <path d="M1314,314 L1314,378" class="pP" marker-end="url(#appP)"/>
+
+    <!-- Filler -->
+    <rect x="1274" y="378" width="80" height="108" rx="3" class="ef-active"/>
+    <rect x="1285" y="474" width="12" height="16" rx="1" fill="var(--border)"/>
+    <rect x="1302" y="474" width="12" height="16" rx="1" fill="var(--border)"/>
+    <rect x="1319" y="474" width="12" height="16" rx="1" fill="var(--border)"/>
+    <rect x="1336" y="474" width="12" height="16" rx="1" fill="var(--border)"/>
+    <rect x="1285" y="366" width="58" height="18" rx="2" fill="var(--ef)" stroke="var(--border)" stroke-width="1.2"/>
+    <text x="1314" y="508" class="lbl">FILLER</text>
+
+    <!-- Filler → Product out -->
+    <path d="M1314,490 L1314,565" class="pP" marker-end="url(#appP)"/>
+    <text x="1314" y="584" class="lbl" style="fill:var(--product)">PRODUCT</text>
+    <text x="1314" y="597" class="lbl" style="fill:var(--product)">OUTPUT</text>
+  </svg>
+</div>
+
+<!-- ══ SLIDE 4 — CIP ════════════════════════════════════════════ -->
+<div class="slide s-proc" id="s3" data-document-role="page" data-label="CIP">
+  <div class="phead">
+    <span class="ptag">Process 03 of 03</span>
+    <span class="ptitle" style="color:var(--chill)">CIP — Cleaning in Place</span>
+    <div class="legend">
+      <div class="li"><div class="lc" style="background:var(--hot)"></div>Hot / Steam</div>
+      <div class="li"><div class="lc" style="background:var(--cool)"></div>Cooling (CTW)</div>
+      <div class="li"><div class="lc" style="background:var(--chill)"></div>Chilled Water</div>
+      <div class="li"><div class="lc" style="background:var(--steam)"></div>Pure Steam / N₂</div>
+    </div>
+    <div class="led led-run"></div>
+  </div>
+  <svg class="flow-svg" viewBox="0 0 1600 640" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <marker id="ahC" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+        <polygon points="0 0,7 3.5,0 7" fill="var(--hot)"/></marker>
+      <marker id="acC" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+        <polygon points="0 0,7 3.5,0 7" fill="var(--cool)"/></marker>
+      <marker id="abC" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+        <polygon points="0 0,7 3.5,0 7" fill="var(--chill)"/></marker>
+      <marker id="asC" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+        <polygon points="0 0,7 3.5,0 7" fill="var(--steam)"/></marker>
+    </defs>
+
+    <!-- PURE WATER + DOSAGE inputs -->
+    <text x="38" y="170" class="lbl-s" style="fill:var(--chill)">PURE WATER</text>
+    <path d="M57,180 L118,195" class="pB" marker-end="url(#abC)"/>
+    <!-- Dosage unit (drum shape) -->
+    <rect x="20" y="230" width="50" height="50" rx="4" class="ef"/>
+    <ellipse cx="45" cy="230" rx="25" ry="7" class="ef"/>
+    <text x="45" y="296" class="lbl-s">DOSAGE</text>
+    <path d="M70,255 L118,220" class="pB" marker-end="url(#abC)"/>
+
+    <!-- Balance Tank -->
+    <rect x="118" y="152" width="72" height="108" rx="3" class="ef-active"/>
+    <ellipse cx="154" cy="152" rx="36" ry="11" class="ef-active"/>
+    <path d="M118,260 L154,288 L190,260" fill="none" stroke="var(--es)" stroke-width="1.5"/>
+    <line x1="122" y1="195" x2="186" y2="195" stroke="var(--border)" stroke-width="1"/>
+    <text x="154" y="315" class="lbl">BALANCE</text>
+    <text x="154" y="328" class="lbl">TANK</text>
+    <text x="154" y="143" class="temp tc">80 °C</text>
+    <!-- Drain point -->
+    <path d="M154,288 L154,340" class="pB"/>
+    <text x="154" y="357" class="lbl-s" style="fill:var(--chill)">DRAIN</text>
+
+    <!-- Tank → Pump -->
+    <path d="M190,214 L268,214" class="pB" marker-end="url(#abC)"/>
+
+    <!-- Feed Pump -->
+    <circle cx="310" cy="214" r="32" class="ef-active"/>
+    <line x1="310" y1="188" x2="310" y2="240" stroke="var(--border)" stroke-width="1.2"/>
+    <line x1="284" y1="214" x2="336" y2="214" stroke="var(--border)" stroke-width="1.2"/>
+    <circle cx="310" cy="214" r="14" class="ef-active"/>
+    <rect x="335" y="200" width="42" height="28" rx="2" fill="#081828" stroke="var(--border)" stroke-width="1.2"/>
+    <text x="310" y="267" class="lbl">FEED PUMP</text>
+
+    <!-- Pump → Heating -->
+    <path d="M377,214 L432,214" class="pH" marker-end="url(#ahC)"/>
+
+    <!-- Heating HEX -->
+    <rect x="432" y="178" width="120" height="72" rx="3" class="ef-active"/>
+    <line x1="442" y1="197" x2="542" y2="197" stroke="var(--border)" stroke-width="1.2"/>
+    <line x1="442" y1="207" x2="542" y2="207" stroke="var(--border)" stroke-width="1.2"/>
+    <line x1="442" y1="217" x2="542" y2="217" stroke="var(--border)" stroke-width="1.2"/>
+    <line x1="442" y1="227" x2="542" y2="227" stroke="var(--border)" stroke-width="1.2"/>
+    <line x1="442" y1="237" x2="542" y2="237" stroke="var(--border)" stroke-width="1.2"/>
+    <ellipse cx="432" cy="214" rx="5" ry="36" class="ef-active"/>
+    <ellipse cx="552" cy="214" rx="5" ry="36" class="ef-active"/>
+    <text x="492" y="267" class="lbl">HEATING</text>
+    <text x="492" y="168" class="temp th">85 °C</text>
+    <path d="M480,250 L480,310" class="pS"/>
+    <text x="480" y="326" class="lbl-s" style="fill:var(--steam)">STEAM</text>
+    <!-- Heat pump -->
+    <circle cx="480" cy="350" r="18" fill="var(--ef)" stroke="var(--border)" stroke-width="1.2"/>
+    <text x="480" y="385" class="lbl-s">HEAT PUMP</text>
+
+    <!-- Heating → Holding -->
+    <path d="M552,214 L620,214" class="pH" marker-end="url(#ahC)"/>
+
+    <!-- Holding Tubes -->
+    <rect x="620" y="183" width="160" height="62" rx="3" class="ef-active"/>
+    <rect x="616" y="179" width="168" height="70" rx="4" fill="none" stroke="var(--dim)" stroke-width="1" stroke-dasharray="5 4" opacity=".5"/>
+    <line x1="630" y1="198" x2="770" y2="198" stroke="var(--border)" stroke-width="1"/>
+    <line x1="630" y1="206" x2="770" y2="206" stroke="var(--border)" stroke-width="1"/>
+    <line x1="630" y1="214" x2="770" y2="214" stroke="var(--border)" stroke-width="1"/>
+    <line x1="630" y1="222" x2="770" y2="222" stroke="var(--border)" stroke-width="1"/>
+    <line x1="630" y1="230" x2="770" y2="230" stroke="var(--border)" stroke-width="1"/>
+    <text x="700" y="264" class="lbl">HOLDING TUBES</text>
+
+    <!-- Holding → Cooling -->
+    <path d="M780,214 L848,214" class="pC" marker-end="url(#acC)"/>
+
+    <!-- Cooling HEX -->
+    <rect x="848" y="178" width="112" height="72" rx="3" class="ef-active"/>
+    <line x1="858" y1="197" x2="950" y2="197" stroke="var(--border)" stroke-width="1.2"/>
+    <line x1="858" y1="207" x2="950" y2="207" stroke="var(--border)" stroke-width="1.2"/>
+    <line x1="858" y1="217" x2="950" y2="217" stroke="var(--border)" stroke-width="1.2"/>
+    <line x1="858" y1="227" x2="950" y2="227" stroke="var(--border)" stroke-width="1.2"/>
+    <line x1="858" y1="237" x2="950" y2="237" stroke="var(--border)" stroke-width="1.2"/>
+    <ellipse cx="848" cy="214" rx="5" ry="36" class="ef-active"/>
+    <ellipse cx="960" cy="214" rx="5" ry="36" class="ef-active"/>
+    <text x="904" y="264" class="lbl">COOLING</text>
+    <path d="M870,178 L870,130" class="pC"/>
+    <path d="M938,130 L938,178" class="pC" marker-end="url(#acC)"/>
+    <text x="870" y="122" class="lbl-s" style="fill:var(--cool)">CTW</text>
+
+    <!-- Cooling → Chilling -->
+    <path d="M960,214 L1020,214" class="pB" marker-end="url(#abC)"/>
+
+    <!-- Chilling HEX -->
+    <rect x="1020" y="178" width="112" height="72" rx="3" class="ef-active"/>
+    <line x1="1030" y1="197" x2="1122" y2="197" stroke="var(--border)" stroke-width="1.2"/>
+    <line x1="1030" y1="207" x2="1122" y2="207" stroke="var(--border)" stroke-width="1.2"/>
+    <line x1="1030" y1="217" x2="1122" y2="217" stroke="var(--border)" stroke-width="1.2"/>
+    <line x1="1030" y1="227" x2="1122" y2="227" stroke="var(--border)" stroke-width="1.2"/>
+    <line x1="1030" y1="237" x2="1122" y2="237" stroke="var(--border)" stroke-width="1.2"/>
+    <ellipse cx="1020" cy="214" rx="5" ry="36" class="ef-active"/>
+    <ellipse cx="1132" cy="214" rx="5" ry="36" class="ef-active"/>
+    <text x="1076" y="264" class="lbl">CHILLING</text>
+    <path d="M1040,178 L1040,130" class="pB"/>
+    <path d="M1112,130 L1112,178" class="pB" marker-end="url(#abC)"/>
+    <text x="1040" y="122" class="lbl-s" style="fill:var(--chill)">CW</text>
+
+    <!-- Chilling → Steri Cooler (via top, then back to aseptic tank) -->
+    <path d="M1076,178 L1076,88 L700,88" class="pH" marker-end="url(#ahC)"/>
+
+    <!-- Steri Cooler (top) -->
+    <rect x="560" y="52" width="140" height="52" rx="3" class="ef-active"/>
+    <ellipse cx="560" cy="78" rx="6" ry="26" class="ef-active"/>
+    <ellipse cx="700" cy="78" rx="6" ry="26" class="ef-active"/>
+    <line x1="572" y1="66" x2="688" y2="66" stroke="var(--border)" stroke-width="1.2"/>
+    <line x1="572" y1="73" x2="688" y2="73" stroke="var(--border)" stroke-width="1.2"/>
+    <line x1="572" y1="80" x2="688" y2="80" stroke="var(--border)" stroke-width="1.2"/>
+    <line x1="572" y1="87" x2="688" y2="87" stroke="var(--border)" stroke-width="1.2"/>
+    <text x="630" y="120" class="lbl">STERI COOLER</text>
+    <path d="M580,52 L580,30" class="pC"/>
+    <path d="M680,30 L680,52" class="pC" marker-end="url(#acC)"/>
+    <text x="540" y="25" class="lbl-s" style="fill:var(--cool)">CTW IN</text>
+    <text x="700" y="25" class="lbl-s" style="fill:var(--cool)">CTW OUT</text>
+    <!-- Steri Cooler → Aseptic Tank -->
+    <path d="M560,78 L1270,78 L1270,160" class="pH" marker-end="url(#ahC)"/>
+
+    <!-- Divider -->
+    <line x1="1200" y1="30" x2="1200" y2="620" stroke="var(--border)" stroke-width="1" stroke-dasharray="6 4" opacity=".5"/>
+
+    <!-- Pure Steam + N2 + Air Filter -->
+    <path d="M1250,120 L1280,160" class="pS" marker-end="url(#asC)"/>
+    <text x="1218" y="112" class="lbl-s" style="fill:var(--steam)">PURE STEAM</text>
+    <rect x="1350" y="88" width="60" height="40" rx="2" class="ef"/>
+    <line x1="1360" y1="100" x2="1400" y2="100" stroke="var(--border)" stroke-width="1"/>
+    <line x1="1360" y1="107" x2="1400" y2="107" stroke="var(--border)" stroke-width="1"/>
+    <line x1="1360" y1="114" x2="1400" y2="114" stroke="var(--border)" stroke-width="1"/>
+    <text x="1380" y="142" class="lbl-s">AIR FILTER</text>
+    <path d="M1440,88 L1440,70 L1380,70 L1380,88" class="pS" marker-end="url(#asC)"/>
+    <text x="1460" y="66" class="lbl-s" style="fill:var(--steam)">N₂</text>
+    <path d="M1490,108 L1412,108" class="pS" marker-end="url(#asC)"/>
+    <text x="1500" y="112" class="lbl-s" style="fill:var(--steam)">COMP AIR</text>
+    <path d="M1350,108 L1330,108 L1330,160" class="pS" marker-end="url(#asC)"/>
+
+    <!-- Aseptic Tank -->
+    <rect x="1270" y="160" width="88" height="140" rx="3" class="ef-active"/>
+    <ellipse cx="1314" cy="160" rx="44" ry="14" class="ef-active"/>
+    <ellipse cx="1314" cy="300" rx="44" ry="14" class="ef-active"/>
+    <line x1="1278" y1="220" x2="1350" y2="220" stroke="var(--border)" stroke-width="1"/>
+    <line x1="1278" y1="240" x2="1350" y2="240" stroke="var(--border)" stroke-width="1"/>
+    <text x="1314" y="342" class="lbl">ASEPTIC</text>
+    <text x="1314" y="355" class="lbl">TANK</text>
+    <text x="1314" y="148" class="temp th">85 °C</text>
+
+    <!-- Aseptic Tank → Filler -->
+    <path d="M1314,314 L1314,378" class="pS" marker-end="url(#asC)"/>
+
+    <!-- Filler -->
+    <rect x="1274" y="378" width="80" height="108" rx="3" class="ef-active"/>
+    <rect x="1285" y="474" width="12" height="16" rx="1" fill="var(--border)"/>
+    <rect x="1302" y="474" width="12" height="16" rx="1" fill="var(--border)"/>
+    <rect x="1319" y="474" width="12" height="16" rx="1" fill="var(--border)"/>
+    <rect x="1336" y="474" width="12" height="16" rx="1" fill="var(--border)"/>
+    <rect x="1285" y="366" width="58" height="18" rx="2" fill="var(--ef)" stroke="var(--border)" stroke-width="1.2"/>
+    <text x="1314" y="508" class="lbl">FILLER</text>
+    <!-- Filler → back to Balance Tank (CIP recirculation) -->
+    <path d="M1354,430 L1540,430 L1540,560 L80,560 L80,211 L118,211" class="pB" marker-end="url(#abC)"/>
+    <text x="1540" y="590" class="lbl-s" style="fill:var(--chill)">CIP RECIRCULATION</text>
+  </svg>
+</div>
+
+<!-- ══ SLIDE 5 — THANK YOU ══════════════════════════════════════ -->
+<div class="slide s-ty" id="s4" data-document-role="page" data-label="Thank You">
+  <div class="ty">THANK YOU</div>
+  <div class="ty-s">ASEPTIC STERILIZATION &amp; PACKING SYSTEM</div>
+</div>
+
+</div><!-- .deck -->
+
+<!-- Navigation UI -->
+<div class="nav">
+  <div class="dot on" onclick="go(0)"></div>
+  <div class="dot" onclick="go(1)"></div>
+  <div class="dot" onclick="go(2)"></div>
+  <div class="dot" onclick="go(3)"></div>
+  <div class="dot" onclick="go(4)"></div>
+</div>
+<div class="navb">
+  <button class="nb" onclick="go(cur-1)">◀ PREV</button>
+  <button class="nb" onclick="go(cur+1)">NEXT ▶</button>
+</div>
+
+<script>
+let cur = 0;
+const slides = document.querySelectorAll('.slide');
+const dots   = document.querySelectorAll('.dot');
+function go(n) {
+  n = Math.max(0, Math.min(slides.length - 1, n));
+  slides[cur].classList.remove('on');
+  dots[cur].classList.remove('on');
+  cur = n;
+  slides[cur].classList.add('on');
+  dots[cur].classList.add('on');
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') go(cur + 1);
+  if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   go(cur - 1);
+});
+</script>
+</body>
+</html>
